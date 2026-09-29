@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>aQuaLog — Gestão de Logística e Transportes</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#fafaf9;
+  --panel:#ffffff;
+  --border:#e9e9e6;
+  --border-soft:#f1f1ef;
+  --ink:#20241f;
+  --ink-soft:#787f78;
+  --ink-faint:#a3a89f;
+  --brand:#3c6b5e;
+  --brand-dark:#2a4c42;
+  --brand-soft:#eef4f1;
+  --amarelo:#8a6d00; --amarelo-bg:#fbf3dc;
+  --azul:#33587a; --azul-bg:#e8eef3;
+  --verde:#2f7a4f; --verde-bg:#e7f4ec;
+  --vermelho:#a1493f; --vermelho-bg:#f8ebe9;
+  --cinza:#787f78; --cinza-bg:#eeeeec;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(30,35,30,.04), 0 6px 16px rgba(30,35,30,.05);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;}
+body{min-height:100vh;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{margin:0 0 6px 0;font-weight:600;letter-spacing:-.01em;}
+p{margin:0 0 8px 0;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:15.5px;}
+a{color:var(--brand);}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:#d8d8d4;border-radius:8px;}
+.hidden{display:none !important;}
+
+/* ---------- LOGIN ---------- */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);}
+.login-wrap{width:100%;max-width:380px;text-align:center;}
+.login-wordmark{font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--brand-dark);margin-bottom:2px;}
+.login-sub{font-size:13.5px;color:var(--ink-soft);margin-bottom:40px;}
+.partner-logos{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}
+.partner-badge{font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--ink-soft);border:1px solid var(--border);border-radius:7px;padding:5px 11px;background:var(--panel);}
+.partner-sep{color:var(--ink-faint);font-size:11px;}
+.login-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px 24px;text-align:left;box-shadow:var(--shadow);}
+.back-link{background:none;border:none;color:var(--ink-soft);font-size:13px;padding:0;}
+.demo-toggle{background:none;border:none;color:var(--ink-faint);font-size:12px;margin-top:20px;padding:4px;text-decoration:underline;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--border);border-radius:10px;background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+.field small.err{color:var(--vermelho);display:none;font-size:12px;margin-top:4px;}
+.field.invalid input,.field.invalid select{border-color:var(--vermelho);}
+.field.invalid small.err{display:block;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:10px;padding:13px 20px;font-size:15px;font-weight:600;background:var(--brand);color:#fff;min-height:46px;}
+.btn:hover{background:var(--brand-dark);}
+.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--border);}
+.btn.secondary:hover{background:var(--border-soft);}
+.btn.danger{background:var(--vermelho);}
+.btn.danger:hover{background:#832f27;}
+.btn.block{width:100%;}
+.btn.ghost{background:transparent;color:var(--brand-dark);}
+.btn.sm{padding:9px 14px;font-size:13.5px;min-height:38px;border-radius:8px;}
+.demo-hint{margin-top:10px;font-size:11.5px;color:var(--ink-faint);line-height:1.8;}
+
+/* ---------- LAYOUT ---------- */
+#app-shell{display:none;min-height:100vh;}
+header.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:50;}
+.topbar .brand{display:flex;flex-direction:column;line-height:1.1;}
+.topbar .brand b{font-size:16px;letter-spacing:-.02em;color:var(--brand-dark);}
+.topbar .brand span{font-size:10px;color:var(--ink-faint);}
+.topbar .right{display:flex;align-items:center;gap:10px;}
+.topbar .user{font-size:12.5px;text-align:right;line-height:1.2;}
+.topbar .user b{display:block;font-size:13px;color:var(--ink);}
+.topbar .user span{color:var(--ink-faint);font-size:11px;}
+.hamburger{display:none;background:none;border:none;color:var(--ink);font-size:22px;padding:6px 8px;}
+.icon-btn{background:none;border:none;color:var(--ink-soft);font-size:18px;position:relative;padding:6px;}
+.badge{position:absolute;top:0;right:0;background:var(--vermelho);color:#fff;font-size:9.5px;border-radius:10px;padding:1px 5px;min-width:15px;text-align:center;}
+
+nav.sidebar{background:transparent;width:200px;flex-shrink:0;min-height:calc(100vh - 60px);padding:20px 12px;}
+nav.sidebar a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;color:var(--ink-soft);text-decoration:none;font-size:14px;font-weight:500;margin-bottom:2px;}
+nav.sidebar a.active{background:var(--brand-soft);color:var(--brand-dark);font-weight:700;}
+nav.sidebar a:hover{background:var(--border-soft);}
+.layout{display:flex;max-width:1100px;margin:0 auto;}
+main#main{flex:1;padding:26px 24px 60px;max-width:760px;width:100%;}
+
+.mobile-nav-overlay{position:fixed;inset:0;background:rgba(20,20,15,.35);z-index:60;display:none;}
+.mobile-nav-overlay.open{display:block;}
+.mobile-nav{position:fixed;top:0;left:0;bottom:0;width:250px;background:var(--panel);z-index:61;transform:translateX(-100%);transition:transform .2s;padding:18px 12px;}
+.mobile-nav.open{transform:translateX(0);}
+.mobile-nav a{display:block;padding:14px 14px;border-radius:9px;color:var(--ink);text-decoration:none;font-size:15.5px;font-weight:500;}
+.mobile-nav a.active{background:var(--brand-soft);color:var(--brand-dark);font-weight:700;}
+.mobile-nav .close{display:flex;justify-content:flex-end;padding:2px 2px 12px;}
+
+/* ---------- DASHBOARD ---------- */
+.hello{font-size:22px;margin-bottom:2px;}
+.hello-sub{color:var(--ink-soft);font-size:14px;margin-bottom:28px;}
+.resumo-row{display:flex;flex-wrap:wrap;gap:28px;margin-bottom:34px;}
+.resumo-item .num{font-size:30px;font-weight:700;color:var(--brand-dark);line-height:1;font-family:var(--mono);}
+.resumo-item .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+.section-heading{font-size:13px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px;}
+
+/* simple list rows (recentes / requisicoes) */
+.simple-list{display:flex;flex-direction:column;}
+.list-row{padding:16px 4px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+.list-row:last-child{border-bottom:none;}
+.list-row:hover{background:var(--border-soft);margin:0 -8px;padding-left:12px;padding-right:12px;border-radius:8px;}
+.list-row .info b{font-family:var(--mono);font-size:14px;color:var(--brand-dark);}
+.list-row .info .tipo{font-size:14px;color:var(--ink);margin-top:2px;}
+.list-row .info .meta{font-size:12px;color:var(--ink-faint);margin-top:3px;}
+.list-row .right-col{text-align:right;flex-shrink:0;}
+.list-row .right-col .data{font-size:11.5px;color:var(--ink-faint);margin-top:5px;}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.panel-flat{padding:0;border:none;background:none;}
+
+.pill{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+.pill.amarelo{background:var(--amarelo-bg);color:var(--amarelo);}
+.pill.azul{background:var(--azul-bg);color:var(--azul);}
+.pill.verde{background:var(--verde-bg);color:var(--verde);}
+.pill.vermelho{background:var(--vermelho-bg);color:var(--vermelho);}
+.pill.cinza{background:var(--cinza-bg);color:var(--cinza);}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+.toolbar input,.toolbar select{padding:11px 13px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;}
+.toolbar input[type=text]{flex:1;min-width:160px;}
+
+/* ---------- WIZARD (Nova Solicitação) ---------- */
+.wizard-steps{display:flex;gap:6px;margin-bottom:26px;}
+.wizard-steps .ws{flex:1;height:4px;border-radius:4px;background:var(--border);}
+.wizard-steps .ws.done, .wizard-steps .ws.current{background:var(--brand);}
+.wizard-title{font-size:12px;color:var(--ink-faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-actions{display:flex;justify-content:space-between;gap:10px;margin-top:26px;}
+
+.item-row{background:var(--border-soft);border-radius:12px;padding:14px;margin-bottom:12px;position:relative;}
+.item-row .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;}
+.item-row .remove-item{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--vermelho);font-size:18px;font-weight:700;}
+.totais-carga{display:flex;flex-wrap:wrap;gap:22px;background:var(--brand-soft);border-radius:12px;padding:14px 18px;margin-top:6px;font-size:13.5px;color:var(--brand-dark);}
+.totais-carga b{font-size:16px;font-family:var(--mono);}
+
+/* ---------- TABS ---------- */
+.tabs{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px;background:var(--border-soft);padding:4px;border-radius:11px;}
+.tabs button{background:none;border:none;padding:9px 13px;font-size:13px;font-weight:600;color:var(--ink-soft);white-space:nowrap;border-radius:8px;}
+.tabs button.active{color:var(--brand-dark);background:#fff;box-shadow:var(--shadow);}
+
+/* ---------- MACRO STATUS FLOW ---------- */
+.macro-flow{display:flex;align-items:center;margin-bottom:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.macro-flow .m-step{flex:1;min-width:70px;text-align:center;position:relative;font-size:11px;color:var(--ink-faint);font-weight:600;}
+.macro-flow .m-step .bar{height:5px;border-radius:4px;background:var(--border);margin-bottom:8px;}
+.macro-flow .m-step.done .bar{background:var(--brand);}
+.macro-flow .m-step.current .bar{background:var(--brand);}
+.macro-flow .m-step.current{color:var(--brand-dark);}
+.macro-flow .m-step.done{color:var(--ink-soft);}
+.detail-status-line{font-size:12.5px;color:var(--ink-soft);margin-bottom:22px;}
+.banner-alerta{background:var(--vermelho-bg);color:var(--vermelho);border-radius:10px;padding:12px 16px;font-size:13.5px;font-weight:600;margin-bottom:18px;}
+
+/* ---------- QUOTE CARDS (stacked label/value) ---------- */
+.quote-block{border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+.quote-block.chosen{border-color:var(--brand);background:var(--brand-soft);}
+.quote-block .qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.quote-block .qhead b{font-size:13px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
+.qf{margin-bottom:10px;}
+.qf .qlbl{font-size:11.5px;color:var(--ink-faint);margin-bottom:2px;}
+.qf .qval{font-size:15.5px;color:var(--ink);}
+.qf .qval.big{font-size:22px;font-weight:700;color:var(--brand-dark);font-family:var(--mono);}
+
+/* ---------- ACTIVITY / HISTORICO ---------- */
+.hist-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px;}
+.hist-item:last-child{border-bottom:none;}
+.hist-item .dot2{width:7px;height:7px;border-radius:50%;background:var(--brand);margin-top:7px;flex-shrink:0;}
+.hist-item .meta{color:var(--ink-faint);font-size:11.5px;margin-top:2px;}
+
+table.data-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.data-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-faint);padding:10px 8px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600;}
+table.data-table td{padding:12px 8px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(20,25,20,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.modal{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto;}
+.modal h3{margin-bottom:14px;}
+.modal .row{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 0;border-bottom:1px solid var(--border-soft);}
+.modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+.toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;width:calc(100% - 32px);max-width:380px;}
+.toast{background:var(--brand-dark);color:#fff;padding:13px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25);text-align:center;animation:toastIn .2s ease;}
+.toast.error{background:var(--vermelho);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.empty-state{text-align:center;padding:50px 16px;color:var(--ink-faint);}
+.empty-state .big{font-size:34px;margin-bottom:10px;}
+
+.notif-item{padding:14px 4px;border-bottom:1px solid var(--border-soft);font-size:13.5px;}
+.notif-item.unread{color:var(--ink);}
+.notif-item .time{color:var(--ink-faint);font-size:11.5px;margin-top:3px;}
+
+pre.quote-text{white-space:pre-wrap;background:var(--border-soft);border-radius:12px;padding:16px;font-size:13px;font-family:var(--mono);line-height:1.55;}
+
+.proto-tag{display:inline-block;font-size:10.5px;color:var(--ink-faint);border:1px solid var(--border);border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle;}
+
+@media (max-width:880px){
+  nav.sidebar{display:none;}
+  .hamburger{display:block;}
+  main#main{padding:18px 16px 60px;}
+  table.data-table{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+}
+@media (min-width:881px){
+  .mobile-nav,.mobile-nav-overlay,.hamburger{display:none !important;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-wordmark">aQuaLog</div>
+    <div class="login-sub">Gestão de Logística e Transportes</div>
+
+    <div class="partner-logos">
+      <span class="partner-badge">aLBriggs</span>
+      <span class="partner-sep">×</span>
+      <span class="partner-badge">aQuaMec</span>
+    </div>
+
+    <div class="login-card">
+      <div class="field" id="f-email">
+        <label>Usuário / E-mail</label>
+        <input type="email" id="login-email" autocomplete="username">
+        <small class="err">Informe um e-mail válido.</small>
+      </div>
+      <div class="field" id="f-senha">
+        <label>Senha</label>
+        <input type="password" id="login-senha" autocomplete="current-password">
+        <small class="err">Informe a senha.</small>
+      </div>
+      <button class="btn block" onclick="Auth.login()">Entrar</button>
+      <button class="back-link" style="margin-top:14px;" onclick="Auth.esqueciSenha()">Esqueci minha senha</button>
+    </div>
+
+    <button class="demo-toggle" onclick="Auth.toggleDemo()">Ver credenciais de demonstração</button>
+    <div class="demo-hint hidden" id="demo-hint">
+      Admin: admin@empresa.local / admin123<br>
+      Logística: logistica@empresa.local / 123456<br>
+      Solicitantes: solicitante@empresa.local / 123456<br>
+      Financeiro: financeiro@empresa.local / 123456
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="hamburger" onclick="UI.toggleMobileNav(true)">☰</button>
+      <div class="brand"><b>aQuaLog</b><span>Gestão de Logística e Transportes</span></div>
+    </div>
+    <div class="right">
+      <button class="icon-btn" onclick="UI.navigate('pesquisa')">🔎</button>
+      <button class="icon-btn" onclick="UI.navigate('notificacoes')">🔔<span class="badge hidden" id="notif-badge">0</span></button>
+      <div class="user"><b id="user-nome">-</b><span id="user-perfil">-</span></div>
+      <button class="btn secondary sm" onclick="Auth.logout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="mobile-nav-overlay" id="mnav-overlay" onclick="UI.toggleMobileNav(false)"></div>
+  <nav class="mobile-nav" id="mnav">
+    <div class="close"><button class="icon-btn" style="color:#333" onclick="UI.toggleMobileNav(false)">✕</button></div>
+    <div id="mnav-links"></div>
+  </nav>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+/* =========================================================
+   aQuaLog — Gestão de Logística e Transportes
+   HTML + CSS + JavaScript puro, com localStorage.
+   ========================================================= */
+
+/* ---------- CAMADA DE DADOS (protótipo local — ver README) ---------- */
+const DB = {
+  keys:{ usuarios:'aqualog_usuarios', requisicoes:'aqualog_requisicoes', notificacoes:'aqualog_notificacoes', seq:'aqualog_seq' },
+  get(key, fallback){
+    try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : (fallback!==undefined?fallback:null); }
+    catch(e){ console.error('Erro ao ler', key, e); return fallback!==undefined?fallback:null; }
+  },
+  set(key, value){
+    try{ localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch(e){ console.error('Erro ao salvar', key, e); Toast.show('Erro ao salvar dados. Armazenamento pode estar cheio.', true); return false; }
+  }
+};
+
+function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+function numeroRequisicao(){
+  const ano = new Date().getFullYear(), anoCurto = String(ano).slice(-2);
+  let seq = DB.get(DB.keys.seq, {});
+  const atual = (seq[ano]||0)+1; seq[ano]=atual; DB.set(DB.keys.seq, seq);
+  return String(atual).padStart(3,'0')+'/'+anoCurto;
+}
+function nowParts(){ const d=new Date(); return {data:d.toLocaleDateString('pt-BR'), hora:d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}; }
+function fmtMoeda(v){ v=Number(v)||0; return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function fmtNum(v,c){ return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:c||0,maximumFractionDigits:c||2}); }
+function validarCNPJ(cnpj){ if(!cnpj) return false; return cnpj.replace(/\D/g,'').length===14; }
+function parseDataBR(str){ if(!str) return null; const p=str.split('/'); if(p.length!==3) return null; return new Date(+p[2],+p[1]-1,+p[0]); }
+function maskCNPJ(v){
+  v=v.replace(/\D/g,'').slice(0,14);
+  v=v.replace(/^(\d{2})(\d)/,'$1.$2'); v=v.replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3');
+  v=v.replace(/\.(\d{3})(\d)/,'.$1/$2'); v=v.replace(/(\d{4})(\d)/,'$1-$2');
+  return v;
+}
+
+/* ---------- STATUS (detalhado, interno) + ETAPAS MACRO (visual) ---------- */
+const STATUS_FLOW = ['Aguardando Cotação','Cotações Recebidas','Aguardando Aprovação','Cotação Aprovada','Em Operação','Coleta Solicitada','Em Transporte','Entregue','Financeiro','Encerrado'];
+const MACRO_STAGES = ['Solicitação','Cotação','Aprovação','Operação','Financeiro','Entrega','Encerrado'];
+function macroDaEtapa(status){
+  const map = {
+    'Aguardando Cotação':1, 'Cotações Recebidas':1, 'Aguardando Aprovação':2, 'Cotação Aprovada':3,
+    'Em Operação':3, 'Coleta Solicitada':3, 'Em Transporte':5, 'Entregue':5, 'Financeiro':4, 'Encerrado':6
+  };
+  return map[status] !== undefined ? map[status] : 0;
+}
+function statusCor(status){
+  const map = {
+    'Aguardando Cotação':'amarelo','Cotações Recebidas':'amarelo','Aguardando Aprovação':'amarelo',
+    'Cotação Aprovada':'azul','Em Operação':'azul','Coleta Solicitada':'azul','Em Transporte':'azul',
+    'Entregue':'verde','Financeiro':'azul','Encerrado':'cinza','Atrasado':'vermelho','Cancelado':'cinza'
+  };
+  return map[status] || 'cinza';
+}
+
+/* ---------- PERFIS E PERMISSÕES ---------- */
+const PERFIS = ['ADMIN','LOGISTICA','SOLICITANTE','FINANCEIRO'];
+const PERFIL_LABEL = {ADMIN:'Admin', LOGISTICA:'Logística', SOLICITANTE:'Solicitante', FINANCEIRO:'Financeiro'};
+function podeSolicitar(p){ return p==='SOLICITANTE' || p==='ADMIN' || p==='LOGISTICA'; }
+function podeEditarCotacoes(p){ return p==='LOGISTICA' || p==='ADMIN'; }
+function podeEscolherCotacao(p){ return p==='SOLICITANTE' || p==='ADMIN'; }
+function podeEditarOperacao(p){ return p==='LOGISTICA' || p==='ADMIN'; }
+function podeEditarFinanceiro(p){ return p==='FINANCEIRO' || p==='ADMIN'; }
+function podeEditarEntrega(p){ return p==='LOGISTICA' || p==='ADMIN'; }
+function podeAdministrar(p){ return p==='ADMIN'; }
+
+/* ---------- SEED / DADOS DE DEMONSTRAÇÃO ---------- */
+function seedUsuariosSeNecessario(){
+  let usuarios = DB.get(DB.keys.usuarios);
+  if(usuarios && usuarios.length) return;
+  usuarios = [
+    {id:uid('usr'), nome:'Administrador', email:'admin@empresa.local', senha:'admin123', perfil:'ADMIN', status:'Ativo'},
+    {id:uid('usr'), nome:'Equipe Logística', email:'logistica@empresa.local', senha:'123456', perfil:'LOGISTICA', status:'Ativo'},
+    {id:uid('usr'), nome:'João Solicitante', email:'solicitante@empresa.local', senha:'123456', perfil:'SOLICITANTE', status:'Ativo'},
+    {id:uid('usr'), nome:'Equipe Financeiro', email:'financeiro@empresa.local', senha:'123456', perfil:'FINANCEIRO', status:'Ativo'},
+  ];
+  DB.set(DB.keys.usuarios, usuarios);
+}
+
+function novaRequisicaoBase(overrides){
+  const {data}=nowParts();
+  const base = {
+    id:uid('req'), numero:numeroRequisicao(), criadoEm:new Date().toISOString(),
+    tipoMovimentacao:'', empresaDebito:'', cnpjDebito:'', solicitante:'', pcPvMotivo:'', dataSolicitacao:data, urgencia:'Normal',
+    clienteFornecedor:'', cnpjClienteFornecedor:'',
+    origem:{razaoSocial:'',cnpj:'',endereco:'',cep:'',cidade:'',estado:''},
+    destino:{razaoSocial:'',cnpj:'',endereco:'',cep:'',cidade:'',estado:''},
+    itens:[], dataMaxEntrega:'', urgenciaEntrega:'Normal', triangular:'Não', tipoFrete:'CIF', observacao:'',
+    status:'Aguardando Cotação', cotacoes:[], cotacaoEscolhida:null,
+    operacao:{transportadoraAprovada:'',tipoFrete:'',dataSolicitacaoColeta:'',solicitanteColeta:'',nfTransporte:'',valorTotalNF:'',valorFrete:'',valorFreteNegociado:'',dataPrevistaEntrega:''},
+    financeiro:{dataEnvioContabilidade:'',dataEnvioFinanceiro:'',fornecedor:'',fatura:'',cteNf:'',detalhamento:'',aprovador:'',valorTotal:'',vencimento:'',debito:'',statusFinanceiro:'Não enviado'},
+    entrega:{dataPrevista:'',status:'Aguardando Coleta',comprovante:'Não',comprovanteNome:'',recebedor:'',dataReal:'',observacao:''},
+    historico:[]
+  };
+  return Object.assign(base, overrides||{});
+}
+function registrarHistorico(req, acao, statusAnterior, novoStatus, descricao){
+  const {data,hora}=nowParts(); const u=Auth.currentUser();
+  req.historico.unshift({data,hora, usuario:u?u.nome:'Sistema', perfil:u?u.perfil:'-', acao, statusAnterior:statusAnterior||req.status, novoStatus:novoStatus||req.status, descricao:descricao||''});
+}
+function criarNotificacao(mensagem, requisicaoId){
+  const notifs = DB.get(DB.keys.notificacoes, []); const {data,hora}=nowParts();
+  notifs.unshift({id:uid('ntf'), mensagem, requisicaoId, data, hora, lida:false});
+  DB.set(DB.keys.notificacoes, notifs);
+}
+
+function seedRequisicoesSeNecessario(){
+  let reqs = DB.get(DB.keys.requisicoes);
+  if(reqs && reqs.length) return;
+  reqs = [];
+  let r1 = novaRequisicaoBase({
+    tipoMovimentacao:'Movimentação de Equipamentos', empresaDebito:'AQUAMEC', cnpjDebito:'21.998.472/0001-55',
+    solicitante:'João Solicitante', pcPvMotivo:'MATERIAL FABRICA - PC 8863 - PONTEIRO',
+    clienteFornecedor:'POINTER COM E DISTR DE METAIS EIRELLI', cnpjClienteFornecedor:'62.285.440/0001-90',
+    origem:{razaoSocial:'AQUAMEC', cnpj:'21.998.472/0001-55', endereco:'R. Florianópolis, 598 - Vila Bertioga', cep:'03185-050', cidade:'São Paulo', estado:'SP'},
+    destino:{razaoSocial:'POINTER', cnpj:'62.285.440/0001-90', endereco:'Av. Tiradentes, 2620 - Parque Industrial', cep:'13309-640', cidade:'Itu', estado:'SP'},
+    itens:[{id:uid('itm'),descricao:'PERFIL REDONDO BRONZE 4 1/2" SAE 660',quantidade:1,unidade:'Unidade',comprimento:0,largura:0,altura:0.5,pesoUnitario:50,valorUnitario:6718,volumes:1}],
+    dataMaxEntrega:'25/09/2026', triangular:'Não', tipoFrete:'CIF', observacao:'01 VOLUME - PESO TOTAL 50KG'
+  });
+  registrarHistoricoSeed(r1,'Solicitação criada',null,'Aguardando Cotação','Requisição criada via dados de demonstração.');
+  reqs.push(r1);
+
+  let r2 = novaRequisicaoBase({
+    tipoMovimentacao:'Transferência entre Filiais', empresaDebito:'MATRIZ SP', cnpjDebito:'11.222.333/0001-44',
+    solicitante:'João Solicitante', pcPvMotivo:'PV 5521', clienteFornecedor:'FILIAL CAMPINAS', cnpjClienteFornecedor:'44.555.666/0001-77',
+    origem:{razaoSocial:'MATRIZ SP',cnpj:'11.222.333/0001-44',endereco:'Av. Paulista, 1000',cep:'01310-000',cidade:'São Paulo',estado:'SP'},
+    destino:{razaoSocial:'FILIAL CAMPINAS',cnpj:'44.555.666/0001-77',endereco:'Rod. Dom Pedro I, km 120',cep:'13098-000',cidade:'Campinas',estado:'SP'},
+    itens:[{id:uid('itm'),descricao:'Peças de reposição industrial',quantidade:10,unidade:'Caixa',comprimento:0.6,largura:0.4,altura:0.4,pesoUnitario:12,valorUnitario:350,volumes:10}],
+    dataMaxEntrega:'30/09/2026', status:'Em Operação',
+    cotacoes:[{transportadora:'Translog Express',valor:1450,prazo:'2 dias úteis',dataPrevista:'27/09/2026',observacao:''},{transportadora:'Rápido Sul',valor:1600,prazo:'1 dia útil',dataPrevista:'26/09/2026',observacao:''}],
+    cotacaoEscolhida:{index:0, usuario:'João Solicitante', data:nowParts().data, hora:nowParts().hora}
+  });
+  r2.operacao = {transportadoraAprovada:'Translog Express', tipoFrete:'CIF', dataSolicitacaoColeta:'2026-09-25', solicitanteColeta:'Equipe Logística', nfTransporte:'', valorTotalNF:'', valorFrete:1450, valorFreteNegociado:1300, dataPrevistaEntrega:'2026-09-27'};
+  registrarHistoricoSeed(r2,'Solicitação criada',null,'Aguardando Cotação','—');
+  registrarHistoricoSeed(r2,'Cotações cadastradas','Aguardando Cotação','Aguardando Aprovação','2 cotações cadastradas.');
+  registrarHistoricoSeed(r2,'Cotação escolhida','Aguardando Aprovação','Cotação Aprovada','Translog Express selecionada.');
+  registrarHistoricoSeed(r2,'Operação iniciada','Cotação Aprovada','Em Operação','Frete negociado registrado.');
+  reqs.push(r2);
+
+  let r3 = novaRequisicaoBase({
+    tipoMovimentacao:'Venda', empresaDebito:'COMERCIAL ABC', cnpjDebito:'55.666.777/0001-88',
+    solicitante:'Equipe Logística', pcPvMotivo:'PV 9012', clienteFornecedor:'CLIENTE FINAL LTDA', cnpjClienteFornecedor:'99.888.777/0001-11',
+    origem:{razaoSocial:'COMERCIAL ABC',cnpj:'55.666.777/0001-88',endereco:'Rua das Indústrias, 200',cep:'04000-000',cidade:'São Paulo',estado:'SP'},
+    destino:{razaoSocial:'CLIENTE FINAL LTDA',cnpj:'99.888.777/0001-11',endereco:'Av. Brasil, 500',cep:'20000-000',cidade:'Rio de Janeiro',estado:'RJ'},
+    itens:[{id:uid('itm'),descricao:'Equipamento eletrônico',quantidade:2,unidade:'Unidade',comprimento:1,largura:0.8,altura:0.6,pesoUnitario:35,valorUnitario:4200,volumes:2}],
+    dataMaxEntrega:'15/09/2026', status:'Entregue',
+    cotacoes:[{transportadora:'LogRio Cargas',valor:980,prazo:'3 dias úteis',dataPrevista:'14/09/2026',observacao:''}],
+    cotacaoEscolhida:{index:0, usuario:'Equipe Logística', data:'12/09/2026', hora:'09:15'}
+  });
+  r3.operacao = {transportadoraAprovada:'LogRio Cargas', tipoFrete:'CIF', dataSolicitacaoColeta:'2026-09-12', solicitanteColeta:'Equipe Logística', nfTransporte:'NF-88451', valorTotalNF:8400, valorFrete:980, valorFreteNegociado:900, dataPrevistaEntrega:'2026-09-14'};
+  r3.entrega = {dataPrevista:'2026-09-14', status:'Entregue', comprovante:'Sim', comprovanteNome:'comprovante-r3.pdf', recebedor:'João da Silva', dataReal:'2026-09-14', observacao:'Entrega sem avarias.'};
+  registrarHistoricoSeed(r3,'Solicitação criada',null,'Aguardando Cotação','—');
+  registrarHistoricoSeed(r3,'Cotação escolhida','Aguardando Aprovação','Cotação Aprovada','LogRio Cargas selecionada.');
+  registrarHistoricoSeed(r3,'Entrega realizada','Em Transporte','Entregue','Recebido por João da Silva.');
+  reqs.push(r3);
+
+  let r4 = novaRequisicaoBase({
+    tipoMovimentacao:'Movimentação de Equipamentos', empresaDebito:'INDUSTRIAL XPTO', cnpjDebito:'33.444.555/0001-22',
+    solicitante:'João Solicitante', pcPvMotivo:'PC 1200', clienteFornecedor:'FORNECEDOR NORTE', cnpjClienteFornecedor:'12.345.678/0001-99',
+    origem:{razaoSocial:'INDUSTRIAL XPTO',cnpj:'33.444.555/0001-22',endereco:'Rod. Anhanguera, km 40',cep:'13000-000',cidade:'Campinas',estado:'SP'},
+    destino:{razaoSocial:'FORNECEDOR NORTE',cnpj:'12.345.678/0001-99',endereco:'Av. Amazonas, 800',cep:'69000-000',cidade:'Manaus',estado:'AM'},
+    itens:[{id:uid('itm'),descricao:'Motor industrial',quantidade:1,unidade:'Unidade',comprimento:1.2,largura:0.9,altura:0.9,pesoUnitario:280,valorUnitario:15800,volumes:1}],
+    dataMaxEntrega:'10/09/2026', status:'Atrasado',
+    cotacoes:[{transportadora:'Norte Cargo',valor:5200,prazo:'8 dias úteis',dataPrevista:'08/09/2026',observacao:'Frete rodoviário de longa distância'}],
+    cotacaoEscolhida:{index:0, usuario:'João Solicitante', data:'01/09/2026', hora:'14:00'}
+  });
+  r4.operacao = {transportadoraAprovada:'Norte Cargo', tipoFrete:'CIF', dataSolicitacaoColeta:'2026-09-02', solicitanteColeta:'Equipe Logística', nfTransporte:'NF-77120', valorTotalNF:15800, valorFrete:5200, valorFreteNegociado:5000, dataPrevistaEntrega:'2026-09-08'};
+  r4.entrega = {dataPrevista:'2026-09-08', status:'Atrasado', comprovante:'Não', comprovanteNome:'', recebedor:'', dataReal:'', observacao:'Aguardando liberação interna.'};
+  registrarHistoricoSeed(r4,'Solicitação criada',null,'Aguardando Cotação','—');
+  registrarHistoricoSeed(r4,'Operação iniciada','Cotação Aprovada','Em Operação','—');
+  registrarHistoricoSeed(r4,'Entrega atrasada','Em Transporte','Atrasado','Prazo estourado.');
+  reqs.push(r4);
+
+  DB.set(DB.keys.requisicoes, reqs);
+  criarNotificacaoSeed('Bem-vindo ao aQuaLog! Dados de demonstração carregados.', null);
+}
+// versões "seed" não dependem de sessão ativa (rodam antes do login)
+function registrarHistoricoSeed(req, acao, statusAnterior, novoStatus, descricao){
+  const {data,hora}=nowParts();
+  req.historico.unshift({data,hora, usuario:'Sistema', perfil:'-', acao, statusAnterior:statusAnterior||req.status, novoStatus:novoStatus||req.status, descricao:descricao||''});
+}
+function criarNotificacaoSeed(mensagem, requisicaoId){
+  const notifs = DB.get(DB.keys.notificacoes, []); const {data,hora}=nowParts();
+  notifs.unshift({id:uid('ntf'), mensagem, requisicaoId, data, hora, lida:false});
+  DB.set(DB.keys.notificacoes, notifs);
+}
+
+/* ---------- AUTENTICAÇÃO ---------- */
+const Auth = {
+  currentUser(){ return JSON.parse(sessionStorage.getItem('aqualog_sessao')||'null'); },
+  toggleDemo(){ document.getElementById('demo-hint').classList.toggle('hidden'); },
+  esqueciSenha(){
+    Modal.show(`
+      <h3>Esqueci minha senha</h3>
+      <p style="font-size:13.5px;color:var(--ink-soft);">Nesta versão de demonstração não há envio automático de e-mail. Em um ambiente corporativo real, um link seguro de redefinição seria enviado para o seu e-mail cadastrado.</p>
+      <p style="font-size:13.5px;color:var(--ink-soft);">Por enquanto, entre em contato com o Administrador do sistema para redefinir sua senha.</p>
+      <div class="actions"><button class="btn" onclick="Modal.close()">Entendi</button></div>
+    `);
+  },
+  login(){
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const senha = document.getElementById('login-senha').value;
+    let ok=true; const fe=document.getElementById('f-email'), fs=document.getElementById('f-senha');
+    fe.classList.remove('invalid'); fs.classList.remove('invalid');
+    if(!email || !email.includes('@')){ fe.classList.add('invalid'); ok=false; }
+    if(!senha){ fs.classList.add('invalid'); ok=false; }
+    if(!ok) return;
+    const usuarios = DB.get(DB.keys.usuarios, []);
+    const u = usuarios.find(x=>x.email.toLowerCase()===email && x.senha===senha);
+    if(!u){ Toast.show('E-mail ou senha inválidos.', true); return; }
+    if(u.status==='Inativo'){ Toast.show('Este usuário está desativado. Fale com o Administrador.', true); return; }
+    sessionStorage.setItem('aqualog_sessao', JSON.stringify({id:u.id, nome:u.nome, email:u.email, perfil:u.perfil}));
+    UI.boot();
+  },
+  logout(force){
+    if(!force && UI._dirty){
+      Modal.show(`
+        <h3>Sair sem salvar?</h3>
+        <p style="font-size:13.5px;color:var(--ink-soft);">Você tem alterações que ainda não foram salvas nesta tela. Se sair agora, elas serão perdidas.</p>
+        <div class="actions"><button class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn danger" onclick="Modal.close();Auth.logout(true)">Sair mesmo assim</button></div>
+      `);
+      return;
+    }
+    UI._dirty = false;
+    sessionStorage.removeItem('aqualog_sessao');
+    document.getElementById('app-shell').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('login-email').value=''; document.getElementById('login-senha').value='';
+    document.getElementById('demo-hint').classList.add('hidden');
+  },
+  isLogged(){ return !!sessionStorage.getItem('aqualog_sessao'); }
+};
+
+/* ---------- TOAST ---------- */
+const Toast = { show(msg,isError){ const wrap=document.getElementById('toast-wrap'); const el=document.createElement('div'); el.className='toast'+(isError?' error':''); el.textContent=msg; wrap.appendChild(el); setTimeout(()=>el.remove(),3200); } };
+
+/* ---------- MENU (por perfil, enxuto) ---------- */
+const MENU_POR_PERFIL = {
+  SOLICITANTE:[ {id:'dashboard',label:'Início',icon:'🏠'}, {id:'nova-solicitacao',label:'Nova Solicitação',icon:'➕'}, {id:'minhas-solicitacoes',label:'Minhas Solicitações',icon:'🗂️'} ],
+  LOGISTICA:[ {id:'dashboard',label:'Início',icon:'🏠'}, {id:'solicitacoes',label:'Solicitações',icon:'📋'}, {id:'nova-solicitacao',label:'Nova Solicitação',icon:'➕'}, {id:'cotacoes',label:'Cotações',icon:'💬'}, {id:'operacao',label:'Operação',icon:'🚚'}, {id:'entregas',label:'Entregas',icon:'📦'}, {id:'historico',label:'Histórico',icon:'🕓'} ],
+  FINANCEIRO:[ {id:'dashboard',label:'Início',icon:'🏠'}, {id:'financeiro',label:'Financeiro',icon:'💳'}, {id:'historico',label:'Histórico',icon:'🕓'} ],
+  ADMIN:[ {id:'dashboard',label:'Início',icon:'🏠'}, {id:'solicitacoes',label:'Solicitações',icon:'📋'}, {id:'cotacoes',label:'Cotações',icon:'💬'}, {id:'operacao',label:'Operação',icon:'🚚'}, {id:'financeiro',label:'Financeiro',icon:'💳'}, {id:'entregas',label:'Entregas',icon:'📦'}, {id:'usuarios',label:'Usuários',icon:'👥'}, {id:'historico',label:'Histórico',icon:'🕓'}, {id:'configuracoes',label:'Configurações',icon:'⚙️'} ]
+};
+const ROTA_PERMISSAO = {
+  'dashboard': ()=>true, 'nova-solicitacao': p=>podeSolicitar(p), 'minhas-solicitacoes': p=>p==='SOLICITANTE',
+  'solicitacoes': p=>p==='LOGISTICA'||p==='ADMIN', 'cotacoes': p=>p==='LOGISTICA'||p==='ADMIN',
+  'operacao': p=>p==='LOGISTICA'||p==='ADMIN', 'financeiro': p=>p==='FINANCEIRO'||p==='ADMIN',
+  'entregas': p=>p==='LOGISTICA'||p==='ADMIN', 'usuarios': p=>podeAdministrar(p), 'historico': p=>p!=='SOLICITANTE',
+  'configuracoes': p=>podeAdministrar(p), 'detalhe': ()=>true, 'notificacoes': ()=>true, 'pesquisa': ()=>true
+};
+
+/* ---------- CONTROLE DE UI / ROTAS ---------- */
+const UI = {
+  state:{view:'dashboard', params:{}},
+  _dirty:false,
+  boot(){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-shell').style.display='block';
+    const u = Auth.currentUser();
+    document.getElementById('user-nome').textContent=u.nome;
+    document.getElementById('user-perfil').textContent=PERFIL_LABEL[u.perfil];
+    this.renderMenu(); this.updateNotifBadge(); this.navigate('dashboard');
+  },
+  renderMenu(){
+    const u=Auth.currentUser(); const items = MENU_POR_PERFIL[u.perfil]||[];
+    const html = items.map(m=>`<a href="#" class="${this.state.view===m.id?'active':''}" onclick="UI.navigate('${m.id}');return false;">${m.icon} ${m.label}</a>`).join('');
+    document.getElementById('sidebar').innerHTML=html;
+    document.getElementById('mnav-links').innerHTML=html;
+  },
+  toggleMobileNav(open){ document.getElementById('mnav').classList.toggle('open',open); document.getElementById('mnav-overlay').classList.toggle('open',open); },
+  updateNotifBadge(){
+    const n = DB.get(DB.keys.notificacoes, []).filter(x=>!x.lida).length;
+    const b = document.getElementById('notif-badge');
+    if(n>0){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden');
+  },
+  navigate(view, params){
+    const u = Auth.currentUser();
+    const permissao = ROTA_PERMISSAO[view];
+    if(permissao && !permissao(u.perfil)){ Toast.show('Seu perfil não tem acesso a essa área.', true); view='dashboard'; params={}; }
+    this.state.view=view; this.state.params=params||{};
+    this._dirty=false;
+    this.toggleMobileNav(false); this.renderMenu();
+    const renderers = {
+      'dashboard':Views.dashboard, 'solicitacoes':Views.requisicoes, 'minhas-solicitacoes':Views.minhasSolicitacoes,
+      'nova-solicitacao':Views.novaSolicitacao, 'detalhe':Views.detalhe, 'notificacoes':Views.notificacoes,
+      'usuarios':Views.usuarios, 'configuracoes':Views.configuracoes,
+      'cotacoes': ()=>Views.listaPorEtapa('cotacoes'), 'operacao': ()=>Views.listaPorEtapa('operacao'),
+      'financeiro': ()=>Views.listaPorEtapa('financeiro'), 'entregas': ()=>Views.listaPorEtapa('entregas'),
+      'historico': Views.historicoGlobal, 'pesquisa': Views.pesquisa
+    };
+    const fn = renderers[view] || Views.dashboard;
+    document.getElementById('main').innerHTML = fn(this.state.params);
+    window.scrollTo(0,0);
+  },
+  refresh(){ this.navigate(this.state.view, this.state.params); }
+};
+
+/* ---------- HELPERS DE NEGÓCIO ---------- */
+function getRequisicoes(){ return DB.get(DB.keys.requisicoes, []); }
+function saveRequisicoes(list){ DB.set(DB.keys.requisicoes, list); }
+function getRequisicao(id){ return getRequisicoes().find(r=>r.id===id); }
+function updateRequisicao(req){ const list=getRequisicoes(); const i=list.findIndex(r=>r.id===req.id); if(i>-1){ list[i]=req; saveRequisicoes(list); } }
+function calcularItens(itens){
+  let pesoTotal=0, valorTotal=0, volumesTotal=0;
+  itens.forEach(it=>{ pesoTotal += (Number(it.pesoUnitario)||0)*(Number(it.quantidade)||0); valorTotal += (Number(it.valorUnitario)||0)*(Number(it.quantidade)||0); volumesTotal += Number(it.volumes)||0; });
+  return {pesoTotal,valorTotal,volumesTotal};
+}
+function tituloCurto(r){ return r.tipoMovimentacao || r.pcPvMotivo || 'Movimentação'; }
+
+/* ---------- VIEWS ---------- */
+const Views = {
+
+  emptyState(msg){ return `<div class="empty-state"><div class="big">📭</div><p>${msg}</p></div>`; },
+
+  linhaSimples(r){
+    return `<div class="list-row" onclick="UI.navigate('detalhe',{id:'${r.id}'})">
+      <div class="info">
+        <b>${r.numero}</b>
+        <div class="tipo">${tituloCurto(r)}</div>
+        <div class="meta">${r.solicitante||'—'}</div>
+      </div>
+      <div class="right-col">
+        <span class="pill ${statusCor(r.status)}">${r.status}</span>
+        <div class="data">${r.dataSolicitacao}</div>
+      </div>
+    </div>`;
+  },
+
+  /* ---------- DASHBOARD ---------- */
+  dashboard(){
+    const u = Auth.currentUser();
+    let reqs = getRequisicoes();
+    if(u.perfil==='SOLICITANTE') reqs = reqs.filter(r=>r.solicitante===u.nome);
+
+    const emAndamento = reqs.filter(r=>!['Encerrado','Cancelado'].includes(r.status)).length;
+    const aguardandoCotacao = reqs.filter(r=>['Aguardando Cotação','Cotações Recebidas'].includes(r.status)).length;
+    const emTransporte = reqs.filter(r=>r.status==='Em Transporte').length;
+    const entregasPendentes = reqs.filter(r=>['Cotação Aprovada','Em Operação','Coleta Solicitada','Em Transporte'].includes(r.status)).length;
+
+    const recentes = [...reqs].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm)).slice(0,5);
+
+    return `
+      <div class="hello">Olá, ${u.nome.split(' ')[0]}</div>
+      <div class="hello-sub">Resumo</div>
+      <div class="resumo-row">
+        <div class="resumo-item"><div class="num">${emAndamento}</div><div class="lbl">Em andamento</div></div>
+        <div class="resumo-item"><div class="num">${aguardandoCotacao}</div><div class="lbl">Aguardando cotação</div></div>
+        <div class="resumo-item"><div class="num">${emTransporte}</div><div class="lbl">Em transporte</div></div>
+        <div class="resumo-item"><div class="num">${entregasPendentes}</div><div class="lbl">Entregas pendentes</div></div>
+      </div>
+      <div class="section-heading">Solicitações recentes</div>
+      <div class="panel panel-flat">
+        <div class="simple-list">${recentes.length?recentes.map(Views.linhaSimples).join(''):Views.emptyState('Nenhuma solicitação ainda.')}</div>
+      </div>
+    `;
+  },
+
+  minhasSolicitacoes(){ return Views.requisicoes({onlyMine:true}); },
+
+  requisicoes(params){
+    params = params||{};
+    const u = Auth.currentUser();
+    let reqs = getRequisicoes();
+    if(params.onlyMine || u.perfil==='SOLICITANTE') reqs = reqs.filter(r=>r.solicitante===u.nome);
+    if(params.status) reqs = reqs.filter(r=>r.status===params.status);
+    reqs = [...reqs].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm));
+
+    return `
+      <h2>${params.onlyMine || u.perfil==='SOLICITANTE' ? 'Minhas Solicitações' : 'Solicitações'}</h2>
+      <div class="toolbar">
+        <input type="text" id="busca-req" placeholder="Buscar por número, solicitante, transportadora..." oninput="Views.filtrarRequisicoes()">
+        <select id="filtro-status" onchange="Views.filtrarRequisicoes()">
+          <option value="">Todos os status</option>
+          ${STATUS_FLOW.concat(['Atrasado','Cancelado']).map(s=>`<option value="${s}" ${params.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="panel panel-flat">
+        <div class="simple-list" id="lista-requisicoes">${Views.renderListaSimples(reqs)}</div>
+      </div>
+    `;
+  },
+  renderListaSimples(reqs){ return reqs.length ? reqs.map(Views.linhaSimples).join('') : Views.emptyState('Nenhuma requisição encontrada.'); },
+  filtrarRequisicoes(){
+    const u = Auth.currentUser();
+    let reqs = getRequisicoes();
+    if(u.perfil==='SOLICITANTE') reqs = reqs.filter(r=>r.solicitante===u.nome);
+    const busca = document.getElementById('busca-req').value.toLowerCase().trim();
+    const status = document.getElementById('filtro-status').value;
+    if(busca) reqs = reqs.filter(r=>[r.numero,r.solicitante,r.empresaDebito,r.operacao.transportadoraAprovada].some(v=>(v||'').toLowerCase().includes(busca)));
+    if(status) reqs = reqs.filter(r=>r.status===status);
+    document.getElementById('lista-requisicoes').innerHTML = Views.renderListaSimples(reqs);
+  },
+
+  /* ---------- LISTAS POR ETAPA (menu Cotações / Operação / Financeiro / Entregas) ---------- */
+  listaPorEtapa(etapa){
+    const cfg = {
+      cotacoes:{titulo:'Cotações', tab:'cotacoes', statusFiltro:['Aguardando Cotação','Cotações Recebidas','Aguardando Aprovação','Cotação Aprovada']},
+      operacao:{titulo:'Operação', tab:'operacao', statusFiltro:['Cotação Aprovada','Em Operação','Coleta Solicitada','Em Transporte']},
+      financeiro:{titulo:'Financeiro', tab:'financeiro', statusFiltro:['Entregue','Financeiro','Encerrado']},
+      entregas:{titulo:'Entregas', tab:'entrega', statusFiltro:['Coleta Solicitada','Em Transporte','Entregue','Atrasado']}
+    }[etapa];
+    let reqs = getRequisicoes().filter(r=>cfg.statusFiltro.includes(r.status) || (etapa==='financeiro' && r.financeiro.statusFinanceiro!=='Não enviado'));
+    reqs = [...reqs].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm));
+    Views._tabPreset = cfg.tab;
+    const u = Auth.currentUser();
+    const mostrarExportarFinanceiro = etapa==='financeiro' && podeEditarFinanceiro(u.perfil);
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <h2>${cfg.titulo}</h2>
+        ${mostrarExportarFinanceiro?`<button class="btn secondary sm" onclick="Exportar.paraExcelFinanceiro()">Exportar para Excel</button>`:''}
+      </div>
+      <p style="color:var(--ink-soft);font-size:13.5px;margin-bottom:18px;">Requisições nesta etapa do processo.</p>
+      <div class="panel panel-flat">
+        <div class="simple-list">${reqs.length?reqs.map(r=>Views.linhaEtapa(r,cfg.tab)).join(''):Views.emptyState('Nada por aqui no momento.')}</div>
+      </div>
+    `;
+  },
+  linhaEtapa(r, tab){
+    return `<div class="list-row" onclick="Views._tabAtual='${tab}';UI.navigate('detalhe',{id:'${r.id}'})">
+      <div class="info"><b>${r.numero}</b><div class="tipo">${tituloCurto(r)}</div><div class="meta">${r.solicitante||'—'}</div></div>
+      <div class="right-col"><span class="pill ${statusCor(r.status)}">${r.status}</span><div class="data">${r.dataMaxEntrega||r.dataSolicitacao}</div></div>
+    </div>`;
+  },
+
+  /* ---------- HISTÓRICO GLOBAL ---------- */
+  historicoGlobal(){
+    const reqs = getRequisicoes();
+    let eventos = [];
+    reqs.forEach(r=>r.historico.forEach(h=>eventos.push({...h, numero:r.numero, id:r.id})));
+    eventos.sort((a,b)=> (b.data.split('/').reverse().join('')+b.hora) > (a.data.split('/').reverse().join('')+a.hora) ? 1 : -1);
+    eventos = eventos.slice(0,60);
+    return `
+      <h2>Histórico</h2>
+      <div class="panel">
+        ${eventos.length? eventos.map(h=>`
+          <div class="hist-item" style="cursor:pointer" onclick="UI.navigate('detalhe',{id:'${h.id}'})">
+            <div class="dot2"></div>
+            <div><div><b>${h.numero}</b> — ${h.acao}</div><div class="meta">${h.data} ${h.hora} · ${h.usuario}</div>${h.descricao?`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${h.descricao}</div>`:''}</div>
+          </div>`).join('') : Views.emptyState('Nenhum evento registrado ainda.')}
+      </div>
+    `;
+  },
+
+  /* ---------- PESQUISA GERAL ---------- */
+  pesquisa(){
+    return `
+      <h2>Pesquisar</h2>
+      <p style="color:var(--ink-soft);font-size:13.5px;margin-bottom:18px;">Busque por requisição, transportadora, fornecedor, solicitante, CNPJ, PC/PV, CTe/NF, fatura, período ou status.</p>
+      <div class="panel">
+        <div class="field"><input type="text" id="pesq-termo" placeholder="Digite para buscar..." oninput="Views.executarPesquisa()" autofocus></div>
+        <div class="form-grid">
+          <div class="field"><label>De</label><input type="date" id="pesq-de" onchange="Views.executarPesquisa()"></div>
+          <div class="field"><label>Até</label><input type="date" id="pesq-ate" onchange="Views.executarPesquisa()"></div>
+          <div class="field"><label>Status</label><select id="pesq-status" onchange="Views.executarPesquisa()"><option value="">Todos</option>${STATUS_FLOW.concat(['Atrasado','Cancelado']).map(s=>`<option>${s}</option>`).join('')}</select></div>
+        </div>
+      </div>
+      <div class="panel panel-flat"><div class="simple-list" id="pesq-resultados">${Views.emptyState('Digite algo para começar a busca.')}</div></div>
+    `;
+  },
+  executarPesquisa(){
+    const u = Auth.currentUser();
+    const termo = document.getElementById('pesq-termo').value.toLowerCase().trim();
+    const de = document.getElementById('pesq-de').value ? new Date(document.getElementById('pesq-de').value+'T00:00:00') : null;
+    const ate = document.getElementById('pesq-ate').value ? new Date(document.getElementById('pesq-ate').value+'T23:59:59') : null;
+    const status = document.getElementById('pesq-status').value;
+    let reqs = getRequisicoes();
+    if(u.perfil==='SOLICITANTE') reqs = reqs.filter(r=>r.solicitante===u.nome);
+    if(termo){
+      reqs = reqs.filter(r => [
+        r.numero, r.operacao.transportadoraAprovada, r.empresaDebito, r.clienteFornecedor, r.solicitante,
+        r.cnpjDebito, r.cnpjClienteFornecedor, r.pcPvMotivo, r.financeiro.cteNf, r.financeiro.fatura
+      ].some(v => (v||'').toLowerCase().includes(termo)));
+    }
+    if(status) reqs = reqs.filter(r=>r.status===status);
+    if(de) reqs = reqs.filter(r=>{ const d=parseDataBR(r.dataSolicitacao); return d && d>=de; });
+    if(ate) reqs = reqs.filter(r=>{ const d=parseDataBR(r.dataSolicitacao); return d && d<=ate; });
+    const alvo = document.getElementById('pesq-resultados');
+    if(!termo && !status && !de && !ate){ alvo.innerHTML = Views.emptyState('Digite algo para começar a busca.'); return; }
+    alvo.innerHTML = reqs.length ? reqs.map(Views.linhaSimples).join('') : Views.emptyState('Nada encontrado.');
+  },
+
+  /* ---------- NOVA SOLICITAÇÃO (wizard em 5 etapas) ---------- */
+  _novaSolic:null,
+  novaSolicitacao(){
+    const u = Auth.currentUser();
+    if(!Views._novaSolic){
+      Views._novaSolic = {
+        step:1,
+        d:{ tipoMovimentacao:'', empresaDebito:'', cnpjDebito:'', solicitante:u.nome, pcPvMotivo:'', dataSolicitacao:new Date().toISOString().slice(0,10),
+            clienteFornecedor:'', cnpjClienteFornecedor:'',
+            origem:{razaoSocial:'',cnpj:'',endereco:'',cep:'',cidade:'',estado:''},
+            destino:{razaoSocial:'',cnpj:'',endereco:'',cep:'',cidade:'',estado:''},
+            dataMaxEntrega:'', urgenciaEntrega:'Normal', triangular:'Não', tipoFrete:'CIF', observacao:'' },
+        itens:[{id:uid('itm'),descricao:'',quantidade:1,unidade:'Unidade',comprimento:'',largura:'',altura:'',pesoUnitario:'',valorUnitario:'',volumes:1}]
+      };
+    }
+    return Views.renderWizard();
+  },
+  setCampo(campo,valor){ Views._novaSolic.d[campo]=valor; UI._dirty=true; },
+  setCampoNested(grupo,campo,valor){ Views._novaSolic.d[grupo][campo]=valor; UI._dirty=true; },
+
+  renderWizard(){
+    const st = Views._novaSolic; const d = st.d;
+    const titulos = ['Solicitação','Origem','Destino','Carga','Entrega'];
+    let corpo = '';
+    if(st.step===1){
+      corpo = `
+        <div class="form-grid">
+          <div class="field"><label>Tipo de Movimentação *</label>
+            <select onchange="Views.setCampo('tipoMovimentacao',this.value)">
+              <option value="">Selecione...</option>
+              ${['Movimentação de Equipamentos','Transferência entre Filiais','Venda','Compra','Devolução','Outro'].map(o=>`<option ${d.tipoMovimentacao===o?'selected':''}>${o}</option>`).join('')}
+            </select></div>
+          <div class="field"><label>Empresa Débito *</label><input value="${d.empresaDebito}" oninput="Views.setCampo('empresaDebito',this.value)"></div>
+          <div class="field"><label>CNPJ *</label><input value="${d.cnpjDebito}" maxlength="18" oninput="this.value=maskCNPJ(this.value);Views.setCampo('cnpjDebito',this.value)"></div>
+          <div class="field"><label>Solicitante *</label><input value="${d.solicitante}" oninput="Views.setCampo('solicitante',this.value)"></div>
+          <div class="field"><label>Nº PC / Nº PV / Motivo</label><input value="${d.pcPvMotivo}" oninput="Views.setCampo('pcPvMotivo',this.value)"></div>
+          <div class="field"><label>Data da Solicitação *</label><input type="date" value="${d.dataSolicitacao}" oninput="Views.setCampo('dataSolicitacao',this.value)"></div>
+        </div>`;
+    } else if(st.step===2){
+      corpo = `
+        <div class="form-grid">
+          <div class="field"><label>Cliente / Fornecedor *</label><input value="${d.clienteFornecedor}" oninput="Views.setCampo('clienteFornecedor',this.value)"></div>
+          <div class="field"><label>CNPJ *</label><input value="${d.cnpjClienteFornecedor}" maxlength="18" oninput="this.value=maskCNPJ(this.value);Views.setCampo('cnpjClienteFornecedor',this.value)"></div>
+          <div class="field" style="grid-column:1/-1"><label>Endereço de Coleta *</label><input value="${d.origem.endereco}" oninput="Views.setCampoNested('origem','endereco',this.value)"></div>
+          <div class="field"><label>CEP</label><input value="${d.origem.cep}" oninput="Views.setCampoNested('origem','cep',this.value)"></div>
+          <div class="field"><label>Cidade *</label><input value="${d.origem.cidade}" oninput="Views.setCampoNested('origem','cidade',this.value)"></div>
+          <div class="field"><label>Estado *</label><input value="${d.origem.estado}" maxlength="2" style="text-transform:uppercase" oninput="Views.setCampoNested('origem','estado',this.value.toUpperCase())"></div>
+        </div>`;
+      Views._novaSolic.d.origem.razaoSocial = d.clienteFornecedor;
+      Views._novaSolic.d.origem.cnpj = d.cnpjClienteFornecedor;
+    } else if(st.step===3){
+      corpo = `
+        <div class="form-grid">
+          <div class="field" style="grid-column:1/-1"><label>Razão Social / Local de Entrega *</label><input value="${d.destino.razaoSocial}" oninput="Views.setCampoNested('destino','razaoSocial',this.value)"></div>
+          <div class="field" style="grid-column:1/-1"><label>Endereço *</label><input value="${d.destino.endereco}" oninput="Views.setCampoNested('destino','endereco',this.value)"></div>
+          <div class="field"><label>CEP</label><input value="${d.destino.cep}" oninput="Views.setCampoNested('destino','cep',this.value)"></div>
+          <div class="field"><label>Cidade *</label><input value="${d.destino.cidade}" oninput="Views.setCampoNested('destino','cidade',this.value)"></div>
+          <div class="field"><label>Estado *</label><input value="${d.destino.estado}" maxlength="2" style="text-transform:uppercase" oninput="Views.setCampoNested('destino','estado',this.value.toUpperCase())"></div>
+        </div>`;
+    } else if(st.step===4){
+      corpo = `<div id="itens-container">${Views.renderItensForm()}</div>
+        <button type="button" class="btn secondary sm" onclick="Views.addItem()">+ Adicionar item</button>
+        <div class="totais-carga" id="totais-carga">${Views.renderTotaisCarga()}</div>`;
+    } else if(st.step===5){
+      corpo = `
+        <div class="form-grid">
+          <div class="field"><label>Urgência</label><select onchange="Views.setCampo('urgenciaEntrega',this.value)"><option ${d.urgenciaEntrega==='Normal'?'selected':''}>Normal</option><option ${d.urgenciaEntrega==='Urgente'?'selected':''}>Urgente</option></select></div>
+          <div class="field"><label>Data Máxima de Entrega *</label><input type="date" oninput="Views.setCampo('dataMaxEntrega',this.value)"></div>
+          <div class="field"><label>Tipo de Frete</label><select onchange="Views.setCampo('tipoFrete',this.value)"><option ${d.tipoFrete==='CIF'?'selected':''}>CIF</option><option ${d.tipoFrete==='FOB'?'selected':''}>FOB</option></select></div>
+          <div class="field"><label>Triangular?</label><select onchange="Views.setCampo('triangular',this.value)"><option ${d.triangular==='Não'?'selected':''}>Não</option><option ${d.triangular==='Sim'?'selected':''}>Sim</option></select></div>
+        </div>
+        <div class="field"><label>Observações</label><textarea rows="3" oninput="Views.setCampo('observacao',this.value)">${d.observacao}</textarea></div>`;
+    }
+
+    return `
+      <div class="wizard-title">Nova Solicitação · Etapa ${st.step} de 5</div>
+      <h2>${titulos[st.step-1]}</h2>
+      <div class="wizard-steps">${[1,2,3,4,5].map(i=>`<div class="ws ${i<st.step?'done':i===st.step?'current':''}"></div>`).join('')}</div>
+      <div class="panel">
+        ${corpo}
+        <div class="form-actions">
+          ${st.step>1?`<button class="btn secondary" onclick="Views.wizardVoltar()">Voltar</button>`:`<button class="btn secondary" onclick="Views.cancelarWizard()">Cancelar</button>`}
+          ${st.step<5?`<button class="btn" onclick="Views.wizardContinuar()">Continuar</button>`:`<button class="btn" onclick="Views.salvarSolicitacao()">Criar Solicitação</button>`}
+        </div>
+      </div>
+    `;
+  },
+  cancelarWizard(){ Views._novaSolic=null; UI.navigate('dashboard'); },
+  wizardVoltar(){ Views._novaSolic.step--; UI.refresh(); UI._dirty=true; },
+  wizardContinuar(){
+    const d = Views._novaSolic.d; const st = Views._novaSolic.step;
+    const foco = ()=>{};
+    const validadores = {
+      1: [[d.tipoMovimentacao,'Informe o tipo de movimentação.'],[d.empresaDebito.trim(),'Informe a empresa débito.'],[validarCNPJ(d.cnpjDebito),'Informe um CNPJ válido.'],[d.solicitante.trim(),'Informe o solicitante.'],[d.dataSolicitacao,'Informe a data da solicitação.']],
+      2: [[d.clienteFornecedor.trim(),'Informe o cliente/fornecedor.'],[d.origem.endereco.trim(),'Informe o endereço de coleta.'],[d.origem.cidade.trim(),'Informe a cidade de coleta.'],[d.origem.estado.trim().length===2,'Informe o estado de coleta (UF).']],
+      3: [[d.destino.razaoSocial.trim(),'Informe o local de entrega.'],[d.destino.endereco.trim(),'Informe o endereço de entrega.'],[d.destino.cidade.trim(),'Informe a cidade de entrega.'],[d.destino.estado.trim().length===2,'Informe o estado de entrega (UF).']],
+      4: [[Views._novaSolic.itens.length>0 && !Views._novaSolic.itens.some(it=>!it.descricao||!it.pesoUnitario||!it.valorUnitario), 'Adicione pelo menos um item completo (descrição, peso e valor).']],
+      5: [] // dataMaxEntrega é checado ao criar
+    };
+    for(const [ok,msg] of (validadores[st]||[])){ if(!ok){ Toast.show(msg,true); return; } }
+    Views._novaSolic.step++; UI.refresh(); UI._dirty=true;
+  },
+
+  renderItensForm(){
+    return Views._novaSolic.itens.map((it,i)=>`
+      <div class="item-row">
+        ${Views._novaSolic.itens.length>1?`<button type="button" class="remove-item" onclick="Views.removeItem(${i})">×</button>`:''}
+        <div class="grid">
+          <div class="field" style="grid-column:1/-1"><label>Descrição *</label><input value="${it.descricao}" oninput="Views.updItem(${i},'descricao',this.value)"></div>
+          <div class="field"><label>Quantidade *</label><input type="number" min="0" value="${it.quantidade}" oninput="Views.updItem(${i},'quantidade',this.value)"></div>
+          <div class="field"><label>Unidade</label><input value="${it.unidade}" oninput="Views.updItem(${i},'unidade',this.value)"></div>
+          <div class="field"><label>Comprimento (m)</label><input type="number" min="0" step="0.01" value="${it.comprimento}" oninput="Views.updItem(${i},'comprimento',this.value)"></div>
+          <div class="field"><label>Largura (m)</label><input type="number" min="0" step="0.01" value="${it.largura}" oninput="Views.updItem(${i},'largura',this.value)"></div>
+          <div class="field"><label>Altura (m)</label><input type="number" min="0" step="0.01" value="${it.altura}" oninput="Views.updItem(${i},'altura',this.value)"></div>
+          <div class="field"><label>Peso (kg) *</label><input type="number" min="0" step="0.01" value="${it.pesoUnitario}" oninput="Views.updItem(${i},'pesoUnitario',this.value)"></div>
+          <div class="field"><label>Valor NF (R$) *</label><input type="number" min="0" step="0.01" value="${it.valorUnitario}" oninput="Views.updItem(${i},'valorUnitario',this.value)"></div>
+          <div class="field"><label>Qtd. Volumes</label><input type="number" min="0" value="${it.volumes}" oninput="Views.updItem(${i},'volumes',this.value)"></div>
+        </div>
+      </div>`).join('');
+  },
+  renderTotaisCarga(){
+    const {pesoTotal,valorTotal,volumesTotal} = calcularItens(Views._novaSolic.itens);
+    return `<div>Peso total<br><b>${fmtNum(pesoTotal,2)} kg</b></div><div>Valor total<br><b>${fmtMoeda(valorTotal)}</b></div><div>Volumes<br><b>${volumesTotal}</b></div>`;
+  },
+  addItem(){ Views._novaSolic.itens.push({id:uid('itm'),descricao:'',quantidade:1,unidade:'Unidade',comprimento:'',largura:'',altura:'',pesoUnitario:'',valorUnitario:'',volumes:1}); UI.refresh(); },
+  removeItem(i){ Views._novaSolic.itens.splice(i,1); UI.refresh(); },
+  updItem(i,campo,valor){ Views._novaSolic.itens[i][campo]=valor; UI._dirty=true; document.getElementById('totais-carga').innerHTML=Views.renderTotaisCarga(); },
+
+  salvarSolicitacao(){
+    const st = Views._novaSolic, d = st.d;
+    if(!d.dataMaxEntrega){ Toast.show('Informe a data máxima para entrega.', true); return; }
+    const req = novaRequisicaoBase({
+      tipoMovimentacao:d.tipoMovimentacao, empresaDebito:d.empresaDebito, cnpjDebito:d.cnpjDebito, solicitante:d.solicitante,
+      pcPvMotivo:d.pcPvMotivo, dataSolicitacao:new Date(d.dataSolicitacao+'T00:00:00').toLocaleDateString('pt-BR'), urgencia:'Normal',
+      clienteFornecedor:d.clienteFornecedor, cnpjClienteFornecedor:d.cnpjClienteFornecedor,
+      origem:{...d.origem}, destino:{...d.destino},
+      itens: st.itens.map(it=>({...it})),
+      dataMaxEntrega:new Date(d.dataMaxEntrega+'T00:00:00').toLocaleDateString('pt-BR'),
+      urgenciaEntrega:d.urgenciaEntrega, triangular:d.triangular, tipoFrete:d.tipoFrete, observacao:d.observacao
+    });
+    registrarHistorico(req,'Solicitação criada',null,'Aguardando Cotação','Solicitação criada pelo usuário.');
+    const list = getRequisicoes(); list.push(req); saveRequisicoes(list);
+    criarNotificacao(`Nova solicitação criada: ${req.numero}`, req.id);
+    Toast.show(`Solicitação criada! Número: ${req.numero}`);
+    Views._novaSolic = null;
+    UI.navigate('detalhe',{id:req.id});
+  },
+
+  /* ---------- DETALHE ---------- */
+  _tabAtual:null, _tabPreset:null,
+  detalhe(params){
+    const u = Auth.currentUser();
+    const req = getRequisicao(params.id);
+    if(!req) return Views.emptyState('Requisição não encontrada.');
+    if(u.perfil==='SOLICITANTE' && req.solicitante!==u.nome){ Toast.show('Você só pode ver suas próprias solicitações.', true); setTimeout(()=>UI.navigate('dashboard'),10); return ''; }
+    Views._tabAtual = Views._tabPreset || Views._tabAtual || 'solicitacao'; Views._tabPreset=null;
+    const {pesoTotal,valorTotal,volumesTotal} = calcularItens(req.itens);
+    const idxMacro = macroDaEtapa(req.status);
+    const especial = ['Atrasado','Cancelado'].includes(req.status);
+
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <div><h2 style="margin-bottom:2px;">${req.numero}</h2><span style="color:var(--ink-soft);font-size:13.5px;">${tituloCurto(req)}</span></div>
+        <button class="btn secondary sm" onclick="UI.navigate('dashboard')">← Voltar</button>
+      </div>
+
+      ${especial ? `<div class="banner-alerta">⚠ Status atual: ${req.status}</div>` : ''}
+      <div class="macro-flow">
+        ${MACRO_STAGES.map((s,i)=>`<div class="m-step ${i<idxMacro?'done':i===idxMacro?'current':''}"><div class="bar"></div>${s}</div>`).join('')}
+      </div>
+      <div class="detail-status-line">Etapa detalhada: <b>${req.status}</b></div>
+
+      <div class="tabs">
+        ${['solicitacao','cotacoes','operacao','financeiro','entrega','historico'].map(t=>
+          `<button class="${Views._tabAtual===t?'active':''}" onclick="Views._tabAtual='${t}';UI.refresh()">${{solicitacao:'Solicitação',cotacoes:'Cotações',operacao:'Operação',financeiro:'Financeiro',entrega:'Entrega',historico:'Histórico'}[t]}</button>`
+        ).join('')}
+      </div>
+      <div id="tab-content">${Views.renderTab(req, Views._tabAtual, {pesoTotal,valorTotal,volumesTotal})}</div>
+    `;
+  },
+
+  renderTab(req, tab, totais){
+    if(tab==='solicitacao') return Views.tabSolicitacao(req, totais);
+    if(tab==='cotacoes') return Views.tabCotacoes(req);
+    if(tab==='operacao') return Views.tabOperacao(req);
+    if(tab==='financeiro') return Views.tabFinanceiro(req);
+    if(tab==='entrega') return Views.tabEntrega(req);
+    if(tab==='historico') return Views.tabHistorico(req);
+    return '';
+  },
+
+  tabSolicitacao(req, totais){
+    return `
+      <div class="panel">
+        <div class="section-heading">Identificação</div>
+        <div class="form-grid">
+          <div><small style="color:var(--ink-soft)">Tipo de Movimentação</small><p>${req.tipoMovimentacao||'—'}</p></div>
+          <div><small style="color:var(--ink-soft)">Empresa Débito</small><p>${req.empresaDebito} — ${req.cnpjDebito}</p></div>
+          <div><small style="color:var(--ink-soft)">Solicitante</small><p>${req.solicitante}</p></div>
+          <div><small style="color:var(--ink-soft)">Nº PC/PV/Motivo</small><p>${req.pcPvMotivo||'—'}</p></div>
+        </div>
+        <div class="section-heading" style="margin-top:20px;">Origem</div>
+        <p>${req.clienteFornecedor} — ${req.origem.endereco}, ${req.origem.cidade}/${req.origem.estado}</p>
+        <div class="section-heading" style="margin-top:20px;">Destino</div>
+        <p>${req.destino.razaoSocial} — ${req.destino.endereco}, ${req.destino.cidade}/${req.destino.estado}</p>
+        <div class="section-heading" style="margin-top:20px;">Carga</div>
+        <div class="table-scroll"><table class="data-table">
+          <thead><tr><th>Descrição</th><th>Qtd</th><th>Peso</th><th>Valor</th><th>Vol.</th></tr></thead>
+          <tbody>${req.itens.map(it=>`<tr><td>${it.descricao}</td><td>${it.quantidade} ${it.unidade}</td><td>${fmtNum(it.pesoUnitario,2)}kg</td><td>${fmtMoeda(it.valorUnitario)}</td><td>${it.volumes}</td></tr>`).join('')}</tbody>
+        </table></div>
+        <div class="totais-carga">
+          <div>Peso total<br><b>${fmtNum(totais.pesoTotal,2)} kg</b></div>
+          <div>Valor total<br><b>${fmtMoeda(totais.valorTotal)}</b></div>
+          <div>Volumes<br><b>${totais.volumesTotal}</b></div>
+        </div>
+        <div class="section-heading" style="margin-top:20px;">Entrega</div>
+        <p>Data máxima: ${req.dataMaxEntrega||'—'} · Tipo de frete: ${req.tipoFrete} · Triangular: ${req.triangular}</p>
+        ${req.observacao?`<p style="color:var(--ink-soft);font-size:13.5px;">${req.observacao}</p>`:''}
+
+        <div class="section-heading" style="margin-top:20px;">Texto de Cotação</div>
+        <button class="btn secondary sm" onclick="Views.gerarTextoCotacao('${req.id}')">Gerar Texto de Cotação</button>
+        <div id="quote-text-area" style="margin-top:12px;"></div>
+      </div>
+    `;
+  },
+
+  gerarTextoCotacao(id){
+    const req = getRequisicao(id); const t = calcularItens(req.itens);
+    const conteudo = req.itens.map(it=>it.descricao).join(', ');
+    const dims = req.itens.map(it=>`${it.comprimento||0}x${it.largura||0}x${it.altura||0}m`).join(' / ');
+    const texto = `Prezados,
+
+Solicito a cotação de frete e a previsão do prazo de entrega para a carga descrita abaixo:
+
+Dados de Faturamento e Referência:
+- Débito: ${req.empresaDebito}
+- CNPJ: ${req.cnpjDebito}
+- Número do PV / Motivo: ${req.pcPvMotivo||'—'}
+- Data da Solicitação: ${req.dataSolicitacao}
+
+Origem (Coleta):
+- Razão Social: ${req.clienteFornecedor}
+- Endereço: ${req.origem.endereco}
+- Cidade: ${req.origem.cidade}
+- Estado: ${req.origem.estado}
+
+Destino (Entrega):
+- Razão Social: ${req.destino.razaoSocial}
+- Endereço: ${req.destino.endereco}
+- Cidade: ${req.destino.cidade}
+- Estado: ${req.destino.estado}
+
+Especificações da Carga:
+- Valor da Nota Fiscal: ${fmtMoeda(t.valorTotal)}
+- Conteúdo: ${conteudo}
+- Dimensões: ${dims}
+- Peso Total: ${fmtNum(t.pesoTotal,2)} kg
+- Volumes: ${t.volumesTotal}
+
+Agradeço a atenção e aguardo o envio dos valores e prazos.
+
+Atenciosamente,
+${req.solicitante}`;
+    document.getElementById('quote-text-area').innerHTML = `<pre class="quote-text" id="quote-pre">${texto}</pre><button class="btn sm" style="margin-top:10px;" onclick="Views.copiarTexto()">Copiar Texto</button>`;
+  },
+  copiarTexto(){
+    const texto = document.getElementById('quote-pre').textContent;
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(texto).then(()=>Toast.show('Texto copiado!')).catch(()=>Toast.show('Copie manualmente o texto acima.', true)); }
+    else Toast.show('Copie manualmente o texto acima.', true);
+  },
+
+  tabCotacoes(req){
+    const u = Auth.currentUser();
+    const podeEditar = podeEditarCotacoes(u.perfil) && req.cotacaoEscolhida==null;
+    const podeEscolher = podeEscolherCotacao(u.perfil) && req.cotacaoEscolhida==null && req.cotacoes.length>0;
+    let html = '<div class="panel">';
+    if(podeEditar){
+      const cots = [0,1,2].map(i=>req.cotacoes[i]||{transportadora:'',valor:'',prazo:'',dataPrevista:'',observacao:''});
+      html += `<div class="section-heading">Cadastro de Cotações (até 3)</div>
+      <form id="form-cotacoes" onsubmit="return Views.salvarCotacoes(event,'${req.id}')">
+        ${cots.map((c,i)=>`
+          <div class="item-row"><b>Cotação ${i+1}</b>
+            <div class="grid" style="margin-top:10px;">
+              <div class="field"><label>Transportadora ${i===0?'*':''}</label><input name="transp_${i}" value="${c.transportadora}"></div>
+              <div class="field"><label>Valor (R$) ${i===0?'*':''}</label><input type="number" step="0.01" min="0" name="valor_${i}" value="${c.valor}"></div>
+              <div class="field"><label>Prazo</label><input name="prazo_${i}" value="${c.prazo}"></div>
+              <div class="field"><label>Data Prevista</label><input type="date" name="data_${i}" value="${c.dataPrevista}"></div>
+              <div class="field" style="grid-column:1/-1"><label>Observação</label><input name="obs_${i}" value="${c.observacao}"></div>
+            </div></div>`).join('')}
+        <button class="btn" type="submit">Salvar Cotações</button>
+      </form>`;
+    } else {
+      html += `<div class="section-heading">Cotações Recebidas</div>`;
+      if(req.cotacoes.length===0) html += Views.emptyState('Nenhuma cotação cadastrada ainda.');
+      else req.cotacoes.forEach((c,i)=>{
+        const escolhida = req.cotacaoEscolhida && req.cotacaoEscolhida.index===i;
+        html += `<div class="quote-block ${escolhida?'chosen':''}">
+          <div class="qhead"><b>Cotação ${i+1}</b>${escolhida?'<span class="pill verde">Selecionada</span>':(req.cotacaoEscolhida?'<span class="pill cinza">Não selecionada</span>':'')}</div>
+          <div class="qf"><div class="qlbl">Transportadora</div><div class="qval">${c.transportadora}</div></div>
+          <div class="qf"><div class="qlbl">Valor</div><div class="qval big">${fmtMoeda(c.valor)}</div></div>
+          <div class="qf"><div class="qlbl">Prazo</div><div class="qval">${c.prazo||'—'}</div></div>
+          <div class="qf"><div class="qlbl">Data prevista</div><div class="qval">${c.dataPrevista||'—'}</div></div>
+          ${c.observacao?`<div class="qf"><div class="qlbl">Observação</div><div class="qval">${c.observacao}</div></div>`:''}
+          ${!escolhida && podeEscolher?`<button class="btn sm" onclick="Views.abrirModalEscolha('${req.id}',${i})">Escolher esta cotação</button>`:''}
+        </div>`;
+      });
+      if(req.cotacaoEscolhida) html += `<p style="font-size:12.5px;color:var(--ink-faint);">Escolhida por ${req.cotacaoEscolhida.usuario} em ${req.cotacaoEscolhida.data} às ${req.cotacaoEscolhida.hora}.</p>`;
+    }
+    html += '</div>';
+    return html;
+  },
+  salvarCotacoes(ev, id){
+    ev.preventDefault();
+    const u = Auth.currentUser();
+    if(!podeEditarCotacoes(u.perfil)){ Toast.show('Seu perfil não pode cadastrar cotações.', true); return false; }
+    const f = ev.target; const req = getRequisicao(id);
+    const cots = [];
+    for(let i=0;i<3;i++){ const transp=f['transp_'+i].value, valor=f['valor_'+i].value; if(transp && valor) cots.push({transportadora:transp, valor:Number(valor), prazo:f['prazo_'+i].value, dataPrevista:f['data_'+i].value, observacao:f['obs_'+i].value}); }
+    if(cots.length===0){ Toast.show('Cadastre ao menos a cotação 1, com transportadora e valor.', true); return false; }
+    const statusAnterior = req.status; req.cotacoes=cots; req.status='Aguardando Aprovação';
+    registrarHistorico(req,'Cotações cadastradas', statusAnterior, req.status, `${cots.length} cotação(ões) cadastrada(s).`);
+    updateRequisicao(req);
+    criarNotificacao(`Nova cotação disponível para ${req.numero}.`, req.id);
+    Toast.show('Cotações salvas.'); UI.navigate('detalhe',{id}); return false;
+  },
+  abrirModalEscolha(reqId, idx){
+    const req = getRequisicao(reqId); const c = req.cotacoes[idx];
+    Modal.show(`
+      <h3>Confirma a escolha desta cotação?</h3>
+      <div class="row"><span>Transportadora</span><b>${c.transportadora}</b></div>
+      <div class="row"><span>Valor</span><b>${fmtMoeda(c.valor)}</b></div>
+      <div class="row"><span>Prazo</span><b>${c.prazo||'—'}</b></div>
+      <div class="row"><span>Data prevista</span><b>${c.dataPrevista||'—'}</b></div>
+      <div class="actions"><button class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn" onclick="Views.confirmarEscolha('${reqId}',${idx})">Confirmar escolha</button></div>
+    `);
+  },
+  confirmarEscolha(reqId, idx){
+    const u = Auth.currentUser();
+    if(!podeEscolherCotacao(u.perfil)){ Toast.show('Seu perfil não pode escolher cotações.', true); Modal.close(); return; }
+    const req = getRequisicao(reqId); const {data,hora}=nowParts();
+    req.cotacaoEscolhida = {index:idx, usuario:u.nome, data, hora};
+    const statusAnterior=req.status; req.status='Cotação Aprovada';
+    registrarHistorico(req,'Cotação escolhida', statusAnterior, req.status, `${req.cotacoes[idx].transportadora} selecionada por ${u.nome}.`);
+    updateRequisicao(req);
+    criarNotificacao(`Cotação aprovada para ${req.numero}.`, req.id);
+    Modal.close(); Toast.show('Cotação confirmada!'); UI.navigate('detalhe',{id:reqId});
+  },
+
+  tabOperacao(req){
+    const u = Auth.currentUser(); const podeEditar = podeEditarOperacao(u.perfil); const op = req.operacao;
+    const economia = (Number(op.valorFrete)||0)-(Number(op.valorFreteNegociado)||0);
+    const pct = op.valorFrete ? (economia/Number(op.valorFrete)*100) : 0;
+    return `<div class="panel">
+      <form id="form-operacao" onsubmit="return Views.salvarOperacao(event,'${req.id}')">
+        <div class="section-heading">Coleta</div>
+        <div class="form-grid">
+          <div class="field"><label>Data Solicitação Coleta</label><input type="date" name="dataSolicitacaoColeta" value="${op.dataSolicitacaoColeta}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Solicitante da Coleta</label><input name="solicitanteColeta" value="${op.solicitanteColeta}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Tipo de Frete</label><input name="tipoFrete" value="${op.tipoFrete}" ${podeEditar?'':'disabled'}></div>
+        </div>
+        <div class="section-heading" style="margin-top:20px;">Transporte</div>
+        <div class="form-grid">
+          <div class="field"><label>Transportadora Aprovada</label><input name="transportadoraAprovada" value="${op.transportadoraAprovada}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>NF de Transporte</label><input name="nfTransporte" value="${op.nfTransporte}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Valor Total NF</label><input type="number" step="0.01" name="valorTotalNF" value="${op.valorTotalNF}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Valor de Frete</label><input type="number" step="0.01" name="valorFrete" value="${op.valorFrete}" oninput="Views.calcEconomiaLive()" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Valor Frete Negociado</label><input type="number" step="0.01" name="valorFreteNegociado" value="${op.valorFreteNegociado}" oninput="Views.calcEconomiaLive()" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Data Prevista para Entrega</label><input type="date" name="dataPrevistaEntrega" value="${op.dataPrevistaEntrega}" ${podeEditar?'':'disabled'}></div>
+        </div>
+        ${(op.valorFrete||op.valorFreteNegociado)?`<div class="totais-carga" id="economia-box">
+          <div>Economia<br><b id="eco-val">${fmtMoeda(economia)}</b></div>
+          <div>% Economia<br><b id="eco-pct">${fmtNum(pct,1)}%</b></div>
+        </div>`:`<div id="economia-box"></div>`}
+        ${podeEditar?'<div class="form-actions" style="justify-content:flex-end;"><button class="btn" type="submit">Salvar Operação</button></div>':''}
+      </form>
+    </div>`;
+  },
+  calcEconomiaLive(){
+    const f = document.getElementById('form-operacao');
+    const orig=Number(f.valorFrete.value)||0, neg=Number(f.valorFreteNegociado.value)||0, eco=orig-neg, pct=orig?(eco/orig*100):0;
+    document.getElementById('economia-box').innerHTML = `<div>Economia<br><b>${fmtMoeda(eco)}</b></div><div>% Economia<br><b>${fmtNum(pct,1)}%</b></div>`;
+  },
+  salvarOperacao(ev,id){
+    ev.preventDefault();
+    const u = Auth.currentUser();
+    if(!podeEditarOperacao(u.perfil)){ Toast.show('Seu perfil não pode editar a operação.', true); return false; }
+    const f=ev.target; const req=getRequisicao(id); const statusAnterior=req.status;
+    req.operacao = {transportadoraAprovada:f.transportadoraAprovada.value, tipoFrete:f.tipoFrete.value, dataSolicitacaoColeta:f.dataSolicitacaoColeta.value, solicitanteColeta:f.solicitanteColeta.value, nfTransporte:f.nfTransporte.value, valorTotalNF:f.valorTotalNF.value, valorFrete:f.valorFrete.value, valorFreteNegociado:f.valorFreteNegociado.value, dataPrevistaEntrega:f.dataPrevistaEntrega.value};
+    if(req.status==='Cotação Aprovada') req.status='Em Operação';
+    if(f.dataSolicitacaoColeta.value) req.status='Coleta Solicitada';
+    registrarHistorico(req,'Operação atualizada', statusAnterior, req.status, 'Dados de operação preenchidos.');
+    updateRequisicao(req);
+    criarNotificacao(`Coleta solicitada para ${req.numero}.`, req.id);
+    Toast.show('Operação salva.'); UI.navigate('detalhe',{id}); return false;
+  },
+
+  tabFinanceiro(req){
+    const u = Auth.currentUser(); const podeEditar = podeEditarFinanceiro(u.perfil); const fin = req.financeiro; const op = req.operacao; const ent = req.entrega;
+    const opcoes = ['Não enviado','Enviado para Contabilidade','Enviado para Financeiro','Em aprovação','Aprovado','Pago'];
+    const temContexto = op.valorFrete || op.valorFreteNegociado || ent.comprovante==='Sim' || ent.recebedor;
+    return `
+      ${temContexto?`<div class="panel">
+        <div class="section-heading">Contexto do processo</div>
+        <div class="form-grid">
+          ${op.valorFrete?`<div><small style="color:var(--ink-soft)">Valor do Frete</small><p>${fmtMoeda(op.valorFrete)}</p></div>`:''}
+          ${op.valorFreteNegociado?`<div><small style="color:var(--ink-soft)">Valor do Frete Negociado</small><p>${fmtMoeda(op.valorFreteNegociado)}</p></div>`:''}
+          <div><small style="color:var(--ink-soft)">Comprovante de Entrega</small><p>${ent.comprovante}${ent.comprovanteNome?` — ${ent.comprovanteNome}`:''}</p></div>
+          ${ent.recebedor?`<div><small style="color:var(--ink-soft)">Recebedor</small><p>${ent.recebedor}</p></div>`:''}
+        </div>
+      </div>`:''}
+      <div class="panel">
+      <form id="form-financeiro" onsubmit="return Views.salvarFinanceiro(event,'${req.id}')">
+        <div class="section-heading">Encaminhamento</div>
+        <div class="form-grid">
+          <div class="field"><label>Data Envio Contabilidade</label><input type="date" name="dataEnvioContabilidade" value="${fin.dataEnvioContabilidade}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Data Envio Financeiro</label><input type="date" name="dataEnvioFinanceiro" value="${fin.dataEnvioFinanceiro}" ${podeEditar?'':'disabled'}></div>
+        </div>
+        <div class="section-heading" style="margin-top:20px;">Documentos</div>
+        <div class="form-grid">
+          <div class="field"><label>Fornecedor</label><input name="fornecedor" value="${fin.fornecedor}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Fatura</label><input name="fatura" value="${fin.fatura}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>CTe / NF</label><input name="cteNf" value="${fin.cteNf}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Aprovador</label><input name="aprovador" value="${fin.aprovador}" ${podeEditar?'':'disabled'}></div>
+        </div>
+        <div class="section-heading" style="margin-top:20px;">Valores</div>
+        <div class="form-grid">
+          <div class="field"><label>Valor Total</label><input type="number" step="0.01" name="valorTotal" value="${fin.valorTotal}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Vencimento</label><input type="date" name="vencimento" value="${fin.vencimento}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Débito</label><input name="debito" value="${fin.debito}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Status Financeiro</label><select name="statusFinanceiro" ${podeEditar?'':'disabled'}>${opcoes.map(s=>`<option ${fin.statusFinanceiro===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        </div>
+        <div class="field" style="margin-top:14px;"><label>Detalhamento / Motivo</label><textarea name="detalhamento" rows="3" ${podeEditar?'':'disabled'}>${fin.detalhamento}</textarea></div>
+        ${podeEditar?`<div class="field"><label>Anexar Documento <span class="proto-tag">demonstração</span></label><input type="file" name="anexo"></div>`:''}
+        ${podeEditar?'<div class="form-actions" style="justify-content:flex-end;"><button class="btn" type="submit">Salvar Financeiro</button></div>':''}
+      </form>
+    </div>`;
+  },
+  salvarFinanceiro(ev,id){
+    ev.preventDefault();
+    const u = Auth.currentUser();
+    if(!podeEditarFinanceiro(u.perfil)){ Toast.show('Seu perfil não pode editar o financeiro.', true); return false; }
+    const f=ev.target; const req=getRequisicao(id); const statusAnterior=req.status;
+    req.financeiro = {dataEnvioContabilidade:f.dataEnvioContabilidade.value, dataEnvioFinanceiro:f.dataEnvioFinanceiro.value, fornecedor:f.fornecedor.value, fatura:f.fatura.value, cteNf:f.cteNf.value, detalhamento:f.detalhamento.value, aprovador:f.aprovador.value, valorTotal:f.valorTotal.value, vencimento:f.vencimento.value, debito:f.debito.value, statusFinanceiro:f.statusFinanceiro.value};
+    registrarHistorico(req,'Informação financeira alterada', statusAnterior, req.status, `Status financeiro: ${f.statusFinanceiro.value}.`);
+    updateRequisicao(req);
+    Toast.show('Financeiro salvo.'); UI.navigate('detalhe',{id}); return false;
+  },
+
+  tabEntrega(req){
+    const u = Auth.currentUser(); const podeEditar = podeEditarEntrega(u.perfil); const ent = req.entrega;
+    const statusOpts = ['Pendente','Em transporte','Entregue'];
+    const statusAtualSimplificado = ent.status==='Entregue' ? 'Entregue' : (ent.status==='Em Transporte' ? 'Em transporte' : 'Pendente');
+    return `<div class="panel">
+      <p style="color:var(--ink-soft);font-size:13px;">Data prevista</p>
+      <p style="font-size:18px;font-weight:600;margin-bottom:18px;">${req.dataMaxEntrega||'—'}</p>
+      <form id="form-entrega" onsubmit="return Views.salvarEntrega(event,'${req.id}')">
+        <div class="form-grid">
+          <div class="field"><label>Status</label><select name="status" ${podeEditar?'':'disabled'}>${statusOpts.map(s=>`<option ${statusAtualSimplificado===s?'selected':''}>${s}</option>`).join('')}</select></div>
+          <div class="field"><label>Comprovante de Entrega? <span class="proto-tag">demonstração</span></label><select name="comprovante" ${podeEditar?'':'disabled'}><option ${ent.comprovante==='Não'?'selected':''}>Não</option><option ${ent.comprovante==='Sim'?'selected':''}>Sim</option></select></div>
+          <div class="field"><label>Arquivo do Comprovante</label><input type="file" name="comprovanteArquivo" ${podeEditar?'':'disabled'}>${ent.comprovanteNome?`<small style="color:var(--ink-faint)">Atual: ${ent.comprovanteNome}</small>`:''}</div>
+          <div class="field"><label>Recebedor</label><input name="recebedor" value="${ent.recebedor}" ${podeEditar?'':'disabled'}></div>
+          <div class="field"><label>Data Real da Entrega</label><input type="date" name="dataReal" value="${ent.dataReal}" ${podeEditar?'':'disabled'}></div>
+        </div>
+        <div class="field" style="margin-top:14px;"><label>Observação</label><textarea name="observacao" rows="3" ${podeEditar?'':'disabled'}>${ent.observacao}</textarea></div>
+        ${podeEditar?'<div class="form-actions" style="justify-content:flex-end;"><button class="btn" type="submit">Salvar Entrega</button></div>':''}
+      </form>
+    </div>`;
+  },
+  salvarEntrega(ev,id){
+    ev.preventDefault();
+    const u = Auth.currentUser();
+    if(!podeEditarEntrega(u.perfil)){ Toast.show('Seu perfil não pode editar a entrega.', true); return false; }
+    const f=ev.target; const req=getRequisicao(id); const statusAnterior=req.status;
+    const arquivo = f.comprovanteArquivo && f.comprovanteArquivo.files[0];
+    const mapaStatus = {'Pendente':'Aguardando Coleta','Em transporte':'Em Transporte','Entregue':'Entregue'};
+    req.entrega = {dataPrevista:req.entrega.dataPrevista, status:mapaStatus[f.status.value], comprovante:f.comprovante.value, comprovanteNome: arquivo?arquivo.name:req.entrega.comprovanteNome, recebedor:f.recebedor.value, dataReal:f.dataReal.value, observacao:f.observacao.value};
+    if(f.status.value==='Entregue') req.status='Entregue';
+    else if(f.status.value==='Em transporte') req.status='Em Transporte';
+    registrarHistorico(req,'Entrega atualizada', statusAnterior, req.status, `Status de entrega: ${f.status.value}.`);
+    updateRequisicao(req);
+    if(f.status.value==='Entregue') criarNotificacao(`Entrega registrada para ${req.numero}.`, req.id);
+    Toast.show('Entrega salva.'); UI.navigate('detalhe',{id}); return false;
+  },
+
+  tabHistorico(req){
+    if(req.historico.length===0) return `<div class="panel">${Views.emptyState('Sem histórico ainda.')}</div>`;
+    return `<div class="panel">${req.historico.map(h=>`
+      <div class="hist-item"><div class="dot2"></div>
+        <div><div><b>${h.acao}</b></div><div class="meta">${h.data} ${h.hora} · ${h.usuario} (${PERFIL_LABEL[h.perfil]||h.perfil})</div>${h.descricao?`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${h.descricao}</div>`:''}</div>
+      </div>`).join('')}</div>`;
+  },
+
+  /* ---------- NOTIFICAÇÕES ---------- */
+  notificacoes(){
+    const notifs = DB.get(DB.keys.notificacoes, []);
+    notifs.forEach(n=>n.lida=true); DB.set(DB.keys.notificacoes, notifs);
+    setTimeout(()=>UI.updateNotifBadge(),50);
+    if(notifs.length===0) return `<h2>Notificações</h2><div class="panel">${Views.emptyState('Nenhuma notificação.')}</div>`;
+    return `<h2>Notificações</h2><div class="panel">${notifs.map(n=>`<div class="notif-item" style="cursor:${n.requisicaoId?'pointer':'default'}" onclick="${n.requisicaoId?`UI.navigate('detalhe',{id:'${n.requisicaoId}'})`:''}"><div>${n.mensagem}</div><div class="time">${n.data} às ${n.hora}</div></div>`).join('')}</div>`;
+  },
+
+  /* ---------- USUÁRIOS (ADMIN) ---------- */
+  usuarios(){
+    const usuarios = DB.get(DB.keys.usuarios, []);
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <h2>Usuários</h2><button class="btn sm" onclick="Views.abrirModalUsuario()">+ Novo Usuário</button>
+      </div>
+      <div class="panel panel-flat">
+        <div class="simple-list">${usuarios.map(u=>`
+          <div class="list-row" style="cursor:default;" >
+            <div class="info"><b style="font-family:inherit;color:var(--ink)">${u.nome}</b><div class="tipo">${u.email}</div><div class="meta">${PERFIL_LABEL[u.perfil]}</div></div>
+            <div class="right-col">
+              <span class="pill ${u.status==='Ativo'?'verde':'cinza'}">${u.status}</span>
+              <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end;">
+                <button class="btn secondary sm" onclick="Views.abrirModalUsuario('${u.id}')">Editar</button>
+                <button class="btn secondary sm" onclick="Views.toggleUsuarioStatus('${u.id}')">${u.status==='Ativo'?'Desativar':'Ativar'}</button>
+              </div>
+            </div>
+          </div>`).join('')}</div>
+      </div>
+    `;
+  },
+  abrirModalUsuario(id){
+    const usuarios = DB.get(DB.keys.usuarios, []); const u = id?usuarios.find(x=>x.id===id):null;
+    Modal.show(`
+      <h3>${u?'Editar Usuário':'Novo Usuário'}</h3>
+      <form id="form-usuario" novalidate onsubmit="return Views.salvarUsuario(event,${u?`'${u.id}'`:'null'})">
+        <div class="field"><label>Nome completo *</label><input name="nome" value="${u?u.nome:''}"></div>
+        <div class="field"><label>E-mail / Usuário *</label><input type="email" name="email" value="${u?u.email:''}"></div>
+        <div class="field"><label>Senha ${u?'(deixe em branco para manter)':'*'}</label><input type="password" name="senha" autocomplete="new-password"></div>
+        <div class="field"><label>Confirmar senha ${u?'':'*'}</label><input type="password" name="confirmarSenha" autocomplete="new-password"></div>
+        <div class="field"><label>Perfil *</label><select name="perfil">${PERFIS.map(p=>`<option value="${p}" ${u&&u.perfil===p?'selected':''}>${PERFIL_LABEL[p]}</option>`).join('')}</select></div>
+        <div class="field"><label>Status *</label><select name="status"><option ${!u||u.status==='Ativo'?'selected':''}>Ativo</option><option ${u&&u.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+        <div class="actions"><button type="button" class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn" type="submit">Salvar Usuário</button></div>
+      </form>
+    `);
+  },
+  salvarUsuario(ev,id){
+    ev.preventDefault();
+    const u = Auth.currentUser(); if(!podeAdministrar(u.perfil)){ Toast.show('Seu perfil não pode gerenciar usuários.', true); return false; }
+    const f=ev.target;
+    const nome=f.nome.value.trim(), email=f.email.value.trim().toLowerCase(), senha=f.senha.value, confirmar=f.confirmarSenha.value;
+    if(!nome){ Toast.show('Informe o nome completo.', true); return false; }
+    if(!email || !email.includes('@')){ Toast.show('Informe um e-mail válido.', true); return false; }
+    let usuarios = DB.get(DB.keys.usuarios, []);
+    const emailEmUso = usuarios.find(x=>x.email.toLowerCase()===email && x.id!==id);
+    if(emailEmUso){ Toast.show('Este e-mail já está cadastrado para outro usuário.', true); return false; }
+    if(!id && !senha){ Toast.show('Informe a senha.', true); return false; }
+    if(senha && senha !== confirmar){ Toast.show('A senha e a confirmação não coincidem.', true); return false; }
+    if(id){
+      const alvo=usuarios.find(x=>x.id===id);
+      alvo.nome=nome; alvo.email=email; alvo.perfil=f.perfil.value; alvo.status=f.status.value;
+      if(senha) alvo.senha=senha;
+    } else {
+      usuarios.push({id:uid('usr'), nome, email, senha, perfil:f.perfil.value, status:f.status.value});
+    }
+    DB.set(DB.keys.usuarios, usuarios);
+    Modal.close(); Toast.show(id ? 'Usuário atualizado com sucesso.' : 'Usuário cadastrado com sucesso.'); UI.navigate('usuarios'); return false;
+  },
+  toggleUsuarioStatus(id){
+    const u = Auth.currentUser(); if(!podeAdministrar(u.perfil)){ Toast.show('Seu perfil não pode gerenciar usuários.', true); return; }
+    let usuarios = DB.get(DB.keys.usuarios, []); const alvo=usuarios.find(x=>x.id===id);
+    alvo.status = alvo.status==='Ativo'?'Inativo':'Ativo'; DB.set(DB.keys.usuarios, usuarios); UI.navigate('usuarios');
+  },
+
+  /* ---------- CONFIGURAÇÕES (ADMIN) ---------- */
+  configuracoes(){
+    return `
+      <h2>Configurações</h2>
+      <div class="panel">
+        <div class="section-heading">Armazenamento de dados <span class="proto-tag">protótipo</span></div>
+        <p style="color:var(--ink-soft);font-size:13.5px;">Esta versão guarda os dados apenas no navegador (localStorage), como uma demonstração. Não há banco de dados central nem múltiplos usuários acessando ao mesmo tempo — isso exige um backend futuro (veja o README).</p>
+      </div>
+      <div class="panel">
+        <div class="section-heading">Exportação</div>
+        <p style="color:var(--ink-soft);font-size:13.5px;">Gera uma planilha Excel (.xlsx) com todos os dados atuais.</p>
+        <button class="btn" onclick="Exportar.paraExcel()">Exportar para Excel</button>
+      </div>
+      <div class="panel">
+        <div class="section-heading">Backup</div>
+        <p style="color:var(--ink-soft);font-size:13.5px;">Exporte os dados em JSON para guardar em segurança, ou restaure um backup anterior.</p>
+        <button class="btn secondary" onclick="Backup.exportar()">Exportar Backup</button>
+        <label class="btn secondary" style="margin-left:8px;">Importar Backup<input type="file" accept="application/json" style="display:none" onchange="Backup.importar(event)"></label>
+      </div>
+      <div class="panel">
+        <div class="section-heading">Dados de Demonstração</div>
+        <p style="color:var(--ink-soft);font-size:13.5px;">Remove tudo e recria os dados iniciais de demonstração. Esta ação não pode ser desfeita.</p>
+        <button class="btn danger" onclick="Views.confirmarReset()">Limpar dados de demonstração</button>
+      </div>
+    `;
+  },
+  confirmarReset(){
+    Modal.show(`<h3>Tem certeza?</h3><p>Isso apagará todas as requisições, usuários e notificações, recriando os dados de demonstração.</p>
+      <div class="actions"><button class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn danger" onclick="Views.confirmarReset2()">Continuar</button></div>`);
+  },
+  confirmarReset2(){
+    Modal.show(`<h3>Confirmação final</h3><p>Digite <b>CONFIRMAR</b> para apagar todos os dados.</p><div class="field"><input id="confirm-reset-input"></div>
+      <div class="actions"><button class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn danger" onclick="Views.executarReset()">Apagar tudo</button></div>`);
+  },
+  executarReset(){
+    const u = Auth.currentUser(); if(!podeAdministrar(u.perfil)){ Toast.show('Seu perfil não pode executar esta ação.', true); Modal.close(); return; }
+    if(document.getElementById('confirm-reset-input').value !== 'CONFIRMAR'){ Toast.show('Digite exatamente CONFIRMAR para continuar.', true); return; }
+    localStorage.removeItem(DB.keys.requisicoes); localStorage.removeItem(DB.keys.usuarios); localStorage.removeItem(DB.keys.notificacoes); localStorage.removeItem(DB.keys.seq);
+    seedUsuariosSeNecessario(); seedRequisicoesSeNecessario();
+    Modal.close(); Toast.show('Dados de demonstração restaurados.'); UI.navigate('dashboard');
+  }
+};
+
+/* ---------- MODAL ---------- */
+const Modal = {
+  show(html){
+    let overlay = document.getElementById('modal-overlay');
+    if(!overlay){ overlay=document.createElement('div'); overlay.id='modal-overlay'; overlay.className='modal-overlay'; overlay.onclick=(e)=>{ if(e.target===overlay) Modal.close(); }; document.body.appendChild(overlay); }
+    overlay.innerHTML = `<div class="modal">${html}</div>`; overlay.style.display='flex';
+  },
+  close(){ const o=document.getElementById('modal-overlay'); if(o) o.style.display='none'; }
+};
+
+/* ---------- EXPORTAÇÃO EXCEL ---------- */
+const Exportar = {
+  paraExcel(){
+    if(typeof XLSX==='undefined'){ Toast.show('Biblioteca de exportação não carregou (sem internet). Tente novamente com conexão ativa.', true); return; }
+    const reqs = getRequisicoes(); const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reqs.map(r=>({Numero:r.numero, Data:r.dataSolicitacao, Solicitante:r.solicitante, TipoMovimentacao:r.tipoMovimentacao, EmpresaDebito:r.empresaDebito, CNPJDebito:r.cnpjDebito, ClienteFornecedor:r.clienteFornecedor, OrigemCidade:r.origem.cidade, DestinoCidade:r.destino.cidade, DataMaxEntrega:r.dataMaxEntrega, TipoFrete:r.tipoFrete, Status:r.status}))), 'Requisicoes');
+    const shItens=[]; reqs.forEach(r=>r.itens.forEach(it=>shItens.push({Requisicao:r.numero, Descricao:it.descricao, Quantidade:it.quantidade, Unidade:it.unidade, PesoUnitario:it.pesoUnitario, ValorUnitario:it.valorUnitario, Volumes:it.volumes})));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shItens), 'Itens');
+    const shCot=[]; reqs.forEach(r=>r.cotacoes.forEach((c,i)=>shCot.push({Requisicao:r.numero, Cotacao:i+1, Transportadora:c.transportadora, Valor:c.valor, Prazo:c.prazo, DataPrevista:c.dataPrevista, Escolhida: r.cotacaoEscolhida && r.cotacaoEscolhida.index===i?'Sim':'Não'})));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shCot), 'Cotacoes');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reqs.map(r=>({Requisicao:r.numero, ...r.operacao}))), 'Operacao');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reqs.map(r=>({Requisicao:r.numero, ...r.financeiro}))), 'Financeiro');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reqs.map(r=>({Requisicao:r.numero, ...r.entrega}))), 'Entregas');
+    const shHist=[]; reqs.forEach(r=>r.historico.forEach(h=>shHist.push({Requisicao:r.numero, ...h}))); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shHist), 'Historico');
+    XLSX.writeFile(wb, 'aqualog-export.xlsx'); Toast.show('Exportação gerada!');
+  },
+
+  paraExcelFinanceiro(){
+    if(typeof XLSX==='undefined'){ Toast.show('Biblioteca de exportação não carregou (sem internet). Tente novamente com conexão ativa.', true); return; }
+    const reqs = getRequisicoes().filter(r=>r.financeiro.statusFinanceiro!=='Não enviado' || ['Entregue','Financeiro','Encerrado'].includes(r.status));
+    if(reqs.length===0){ Toast.show('Nenhum processo financeiro para exportar ainda.', true); return; }
+    const cabecalho = ['FORNECEDOR','FATURA','CTE/NF','DETALHAMENTO/MOTIVO','APROVADOR','VALOR TOTAL','VCTO','DÉBITO','COMPROVANTE DE ENTREGA?','RECEBEDOR'];
+    const linhas = reqs.map(r=>[
+      r.financeiro.fornecedor||'', r.financeiro.fatura||'', r.financeiro.cteNf||'', r.financeiro.detalhamento||'',
+      r.financeiro.aprovador||'', Number(r.financeiro.valorTotal)||0,
+      r.financeiro.vencimento ? new Date(r.financeiro.vencimento+'T00:00:00') : '',
+      r.financeiro.debito||r.empresaDebito||'', r.entrega.comprovante||'Não', r.entrega.recebedor||''
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
+    ws['!cols'] = [{wch:20},{wch:12},{wch:14},{wch:34},{wch:18},{wch:14},{wch:12},{wch:14},{wch:20},{wch:20}];
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:linhas.length,c:cabecalho.length-1}}) };
+    for(let i=0;i<linhas.length;i++){
+      const rowIdx = i+1;
+      const cellValor = ws[XLSX.utils.encode_cell({r:rowIdx,c:5})]; if(cellValor) cellValor.z = '"R$"#,##0.00';
+      const cellVcto = ws[XLSX.utils.encode_cell({r:rowIdx,c:6})]; if(cellVcto && cellVcto.v instanceof Date) cellVcto.z = 'dd/mm/yyyy';
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Financeiro');
+    XLSX.writeFile(wb, 'aqualog-financeiro.xlsx');
+    Toast.show('Planilha financeira exportada!');
+  }
+};
+
+/* ---------- BACKUP ---------- */
+const Backup = {
+  exportar(){
+    const dados = {usuarios:DB.get(DB.keys.usuarios,[]), requisicoes:DB.get(DB.keys.requisicoes,[]), notificacoes:DB.get(DB.keys.notificacoes,[]), seq:DB.get(DB.keys.seq,{}), exportadoEm:new Date().toISOString()};
+    const blob = new Blob([JSON.stringify(dados,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='backup-aqualog.json'; a.click(); URL.revokeObjectURL(url);
+    Toast.show('Backup exportado.');
+  },
+  importar(ev){
+    const file = ev.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      let dados; try{ dados = JSON.parse(e.target.result); }catch(err){ Toast.show('Arquivo inválido.', true); return; }
+      Modal.show(`<h3>Restaurar backup?</h3><p>Isso substituirá todos os dados atuais. Deseja continuar?</p>
+        <div class="actions"><button class="btn secondary" onclick="Modal.close()">Cancelar</button><button class="btn danger" id="btn-confirma-restaura">Restaurar</button></div>`);
+      document.getElementById('btn-confirma-restaura').onclick = ()=>{
+        if(dados.usuarios) DB.set(DB.keys.usuarios, dados.usuarios);
+        if(dados.requisicoes) DB.set(DB.keys.requisicoes, dados.requisicoes);
+        if(dados.notificacoes) DB.set(DB.keys.notificacoes, dados.notificacoes);
+        if(dados.seq) DB.set(DB.keys.seq, dados.seq);
+        Modal.close(); Toast.show('Backup restaurado.'); UI.navigate('dashboard');
+      };
+    };
+    reader.readAsText(file); ev.target.value='';
+  }
+};
+
+/* ---------- INICIALIZAÇÃO ---------- */
+window.maskCNPJ = maskCNPJ;
+(function init(){
+  seedUsuariosSeNecessario();
+  seedRequisicoesSeNecessario();
+  if(Auth.isLogged()) UI.boot();
+  document.getElementById('login-senha').addEventListener('keydown', e=>{ if(e.key==='Enter') Auth.login(); });
+  document.getElementById('login-email').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('login-senha').focus(); });
+  // marca a tela atual como "com alterações não salvas" quando um campo de formulário é editado
+  document.getElementById('main').addEventListener('input', e=>{ if(e.target.closest('form')) UI._dirty=true; });
+  document.getElementById('main').addEventListener('change', e=>{ if(e.target.closest('form')) UI._dirty=true; });
+})();
+</script>
+</body>
+</html>
