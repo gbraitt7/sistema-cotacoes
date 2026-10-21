@@ -1,0 +1,6 @@
+import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+export const invoices = sqliteTable('invoices', {id:text('id').primaryKey(), data:text('data').notNull(), version:integer('version').notNull().default(1), updatedAt:text('updated_at').notNull()});
+export const members = sqliteTable('invoice_members', {email:text('email').primaryKey(), userId:text('user_id'), name:text('name').notNull(), role:text('role').notNull(), active:integer('active').notNull().default(1)});
+export const assets = sqliteTable('invoice_assets', {id:text('id').primaryKey(), owner:text('owner').notNull(), name:text('name').notNull(), type:text('type').notNull(), size:integer('size').notNull()});
+export const audit = sqliteTable('invoice_audit', {id:text('id').primaryKey(), invoiceId:text('invoice_id').notNull(), actor:text('actor').notNull(), action:text('action').notNull(), createdAt:text('created_at').notNull()});
+export const freightRecords = sqliteTable('freight_records', {collection:text('collection').notNull(), id:text('id').notNull(), data:text('data').notNull(), ownerId:text('owner_id').notNull(), updatedBy:text('updated_by').notNull(), updatedAt:text('updated_at').notNull(), version:integer('version').notNull().default(1)}, t=>({pk: primaryKey({columns:[t.collection,t.id]})}));
